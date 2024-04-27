@@ -11,104 +11,121 @@ class UploadPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: mint, // Adjust this color as needed.
+        backgroundColor: mint,
         title: Row(
           children: [
-            Image.asset('lib/images/medicode_logo.png', height: 40), // Place your logo image here.
+            Image.asset('lib/images/medicode_logo.png', height: 40),
             const SizedBox(width: 10),
-            Text(
-              'MediDecode', // Replace with your app or company name.
-              style: TextStyle(
-                  color: Colors.black), // Adjust text color as needed.
-            ),
+            Text('Medicode', style: TextStyle(color: Colors.black)),
           ],
+          mainAxisAlignment: MainAxisAlignment
+              .start, // Aligns title Row to the start of AppBar
         ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              // TODO: Insert navigation or log-in logic here
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.white, // Button background color
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18), // Rounded edges
+              ),
+            ),
+            child: Text(
+              'Log In',
+              style: TextStyle(
+                fontWeight: FontWeight.bold, // Make the text bold
+              ),
+            ),
+          ),
+          const SizedBox(width: 10), // Spacing after button
+        ],
         elevation: 0,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 100.0,
-                vertical: 20,
+        child: SingleChildScrollView(
+          // Use SingleChildScrollView to avoid overflow and allow scrolling
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(100.0, 10.0, 100.0, 10),
+                child: Image.asset('lib/images/heart.jpeg'),
               ),
-              child: Image.asset('lib/images/heart.jpeg'),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(28.0),
-              child: Text(
-                'Before using the app, please read the Terms of Service and remember:\n',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.notoSerif(
-                    fontSize: 36, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Text(
-              'Please read the following information carefully.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(
-                          context); // Pop current screen off the stack
-                    } else {
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (_) => DisclaimerPage()));
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: mint,
-                    ),
-                    child: const Text(
-                      "Back",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(28.0, 0, 28.0, 20.0),
+                child: Text(
+                  'Before using Medicode, please read the Terms of Service and remember:',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.notoSerif(
+                      fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                GestureDetector(
-                  onTap: () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          UploadPage(), // This should navigate to the actual next page
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '• Medicode is for informational purposes only – not a substitute for professional medical advice, diagnosis, or treatment.',
+                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
                     ),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: mint,
+                    Text(
+                      '• Always consult your physician or a qualified health provider with any questions regarding a medical condition.',
+                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
                     ),
-                    child: const Text(
-                      "Next",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                      ),
+                    Text(
+                      '• Do not disregard professional medical advice or delay seeking it based on information from this app.',
+                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const Spacer(),
-          ],
+              ),
+              const SizedBox(
+                  height: 20), // Adjust the space before the buttons as needed
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (_) => DisclaimerPage()));
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: mint,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
+                    ),
+                    child: const Text("Back",
+                        style: TextStyle(color: Colors.black, fontSize: 16)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => UploadPage())),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: mint,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
+                    ),
+                    child: const Text("Next",
+                        style: TextStyle(color: Colors.black, fontSize: 16)),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                  height:
+                      20), // Adjust the space at the bottom of the screen as needed
+            ],
+          ),
         ),
       ),
     );

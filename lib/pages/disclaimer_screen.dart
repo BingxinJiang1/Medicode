@@ -19,7 +19,30 @@ class DisclaimerPage extends StatelessWidget {
             const SizedBox(width: 10),
             Text('Medicode', style: TextStyle(color: Colors.black)),
           ],
+          mainAxisAlignment: MainAxisAlignment
+              .start, // Aligns title Row to the start of AppBar
         ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              // TODO: Insert navigation or log-in logic here
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.white, // Button background color
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18), // Rounded edges
+              ),
+            ),
+            child: Text(
+              'Log In',
+              style: TextStyle(
+                fontWeight: FontWeight.bold, // Make the text bold
+              ),
+            ),
+          ),
+          const SizedBox(width: 10), // Spacing after button
+        ],
         elevation: 0,
       ),
       body: SafeArea(
