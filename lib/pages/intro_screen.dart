@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
+import 'package:gemini/pages/login_page.dart';
 
 class IntroScreen extends StatelessWidget {
   const IntroScreen({super.key});
@@ -23,7 +24,10 @@ class IntroScreen extends StatelessWidget {
     actions: <Widget>[
           TextButton(
             onPressed: () {
-              // TODO: Insert navigation or log-in logic here
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.black, backgroundColor: Colors.white, // Button background color
