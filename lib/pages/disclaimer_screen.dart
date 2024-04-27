@@ -39,7 +39,11 @@ class DisclaimerPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(28.0),
               child: Text(
-                'Disclaimer',
+                'Before using the app, please read the Terms of Service and remember:\n'
+                    '• Medecode is for informational purposes only – not a substitute for professional medical advice, diagnosis, or treatment.\n'
+                    '• Always consult your physician or a qualified health provider with any questions regarding a medical condition.\n'
+                    '• Do not disregard professional medical advice or delay seeking it based on information from this app.\n'
+                    '• Reliance on any information provided by this app is solely at your own risk.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.notoSerif(
                     fontSize: 36, fontWeight: FontWeight.bold),
