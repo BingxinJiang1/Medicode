@@ -11,17 +11,12 @@ class IntroScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: mint, // Adjust this color as needed.
+        backgroundColor: mint,
         title: Row(
           children: [
-            // Image.asset('lib/images/logo.png',
-            //     height: 40), // Place your logo image here.
-            // const SizedBox(width: 10),
-            Text(
-              'MediDecode', // Replace with your app or company name.
-              style: TextStyle(
-                  color: Colors.black), // Adjust text color as needed.
-            ),
+            Image.asset('lib/images/medicode_logo.png', height: 40),
+            const SizedBox(width: 10),
+            Text('Medicode', style: TextStyle(color: Colors.black)),
           ],
         ),
         elevation: 0,
@@ -30,57 +25,75 @@ class IntroScreen extends StatelessWidget {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 100.0,
-                vertical: 20,
-              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 100.0, vertical: 20),
               child: Image.asset('lib/images/heart.jpeg'),
             ),
-            Padding(
-              padding: const EdgeInsets.all(28.0),
-              child: Text(
-                'Introduction',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.notoSerif(
-                    fontSize: 36, fontWeight: FontWeight.bold),
+            Expanded(
+              // Wrap with Expanded for proper spacing
+              child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Centers vertically
+                children: [
+                  Text(
+                    'Understand your report',
+                    textAlign:
+                        TextAlign.center, // Centers the text horizontally
+                    style: GoogleFonts.notoSerif(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                      height: 20), // Add space between text and bullet points
+                  Padding(
+                    // Add Padding widget
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 28.0), // Horizontal padding
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start, // Aligns text to the left
+                      children: [
+                        Text(
+                          '• Upload PDFs of your radiologist\'s reports for instant rephrasing.',
+                          style:
+                              TextStyle(fontSize: 20, color: Colors.grey[700]),
+                        ),
+                        Text(
+                          '• Simplify medical reports into clear, understandable language.',
+                          style:
+                              TextStyle(fontSize: 20, color: Colors.grey[700]),
+                        ),
+                        Text(
+                          '• Get actionable insights and recommended questions for your doctor.',
+                          style:
+                              TextStyle(fontSize: 20, color: Colors.grey[700]),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            Text(
-              'Welcome to Our App',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Spacer(),
-            GestureDetector(
-              onTap: () => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return DisclaimerPage();
-                  },
+            Center( // Center the button horizontally
+              child: GestureDetector(
+                onTap: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => DisclaimerPage()),
                 ),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: mint,
-                ),
-                child: const Text(
-                  "Get Started",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Adjust padding as needed
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: mint,
+                  ),
+                  child: const Text(
+                    'Get Started',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
                 ),
               ),
             ),
-            const Spacer(),
-          ],
+            const SizedBox(height: 30), // To ensure some space at the bottom of the screen
+          ]
         ),
       ),
     );
