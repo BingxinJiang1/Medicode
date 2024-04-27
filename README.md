@@ -1,4 +1,4 @@
-# gemini
+# Readable Patient Project
 
 A new Flutter project.
 
