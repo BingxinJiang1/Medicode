@@ -1,4 +1,4 @@
-# Readable Patient Project
+# Readable Patient Information Project
 
 A new Flutter project.
 
