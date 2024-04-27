@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gemini/pages/intro_screen.dart';
-import 'package:gemini/pages/upload_page.dart';
 
-class DisclaimerPage extends StatelessWidget {
-  const DisclaimerPage({super.key});
+class UploadPage extends StatelessWidget {
+  const UploadPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +14,7 @@ class DisclaimerPage extends StatelessWidget {
         backgroundColor: mint, // Adjust this color as needed.
         title: Row(
           children: [
-            Image.asset('lib/images/medicode_logo.png',
-                height: 40), // Place your logo image here.
+            Image.asset('lib/images/medicode_logo.png', height: 40), // Place your logo image here.
             const SizedBox(width: 10),
             Text(
               'MediDecode', // Replace with your app or company name.
@@ -66,7 +64,7 @@ class DisclaimerPage extends StatelessWidget {
                           context); // Pop current screen off the stack
                     } else {
                       Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (_) => IntroScreen()));
+                          MaterialPageRoute(builder: (_) => DisclaimerPage()));
                     }
                   },
                   child: Container(
