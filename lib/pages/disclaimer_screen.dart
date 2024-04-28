@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gemini/pages/intro_screen.dart';
 import 'package:gemini/pages/upload_page.dart';
+import 'package:gemini/pages/login.dart';
 
 class DisclaimerPage extends StatelessWidget {
   const DisclaimerPage({super.key});
@@ -25,7 +26,10 @@ class DisclaimerPage extends StatelessWidget {
         actions: <Widget>[
           TextButton(
             onPressed: () {
-              // TODO: Insert navigation or log-in logic here
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.black,
@@ -108,8 +112,10 @@ class DisclaimerPage extends StatelessWidget {
                         style: TextStyle(color: Colors.black, fontSize: 16)),
                   ),
                   ElevatedButton(
-                    onPressed: () => Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => DisclaimerPage())),
+                    onPressed: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => UploadPage())
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: mint,
                       shape: RoundedRectangleBorder(
