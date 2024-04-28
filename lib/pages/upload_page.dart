@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:gemini/pages/intro_screen.dart';
+import 'package:gemini/pages/upload_page.dart';
+import 'package:gemini/pages/login.dart';
 
 class UploadPage extends StatelessWidget {
   const UploadPage({super.key});
@@ -24,7 +26,10 @@ class UploadPage extends StatelessWidget {
         actions: <Widget>[
           TextButton(
             onPressed: () {
-              // TODO: Insert navigation or log-in logic here
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.black,
@@ -93,7 +98,7 @@ class UploadPage extends StatelessWidget {
                         Navigator.pop(context);
                       } else {
                         Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (_) => DisclaimerPage()));
+                            MaterialPageRoute(builder: (_) => IntroScreen()));
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -107,8 +112,10 @@ class UploadPage extends StatelessWidget {
                         style: TextStyle(color: Colors.black, fontSize: 16)),
                   ),
                   ElevatedButton(
-                    onPressed: () => Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => UploadPage())),
+                    onPressed: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => UploadPage())
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: mint,
                       shape: RoundedRectangleBorder(
@@ -123,7 +130,7 @@ class UploadPage extends StatelessWidget {
               ),
               const SizedBox(
                   height:
-                      20), // Adjust the space at the bottom of the screen as needed
+                  20), // Adjust the space at the bottom of the screen as needed
             ],
           ),
         ),
