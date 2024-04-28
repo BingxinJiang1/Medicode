@@ -109,7 +109,7 @@ class DisclaimerPage extends StatelessWidget {
                   ),
                   ElevatedButton(
                     onPressed: () => Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => UploadPage())),
+                        MaterialPageRoute(builder: (context) => DisclaimerPage())),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: mint,
                       shape: RoundedRectangleBorder(
