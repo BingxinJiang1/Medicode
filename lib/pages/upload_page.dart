@@ -1,154 +1,140 @@
-// import 'package:flutter/material.dart';
-// import 'package:gemini/pages/disclaimer_screen.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'dart:io';
-// import 'package:flutter/widgets.dart';
-// import 'package:image_cropper/image_cropper.dart';
-// import 'package:image_picker/image_picker.dart';
-// // !!import supabase here
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:gemini/pages/intro_screen.dart';
+import 'package:gemini/pages/upload_page.dart';
+import 'package:gemini/pages/login.dart';
 
-// /// Widget to capture and crop the image
-// class ImageCapture extends StatefulWidget {
-//   createState() => _ImageCaptureState();
-// }
+class UploadPage extends StatelessWidget {
+  const UploadPage({super.key});
 
-// class _ImageCaptureState extends State<ImageCapture> {
-//   /// Active image file
-//   File _imageFile;
-
-//   /// Cropper plugin
-//   Future<void> _cropImage() async {
-//     File cropped = await ImageCropper.cropImage(
-//         sourcePath: _imageFile.path,
-//         // ratioX: 1.0,
-//         // ratioY: 1.0,
-//         // maxWidth: 512,
-//         // maxHeight: 512,
-//         toolbarColor: Colors.purple,
-//         toolbarWidgetColor: Colors.white,
-//         toolbarTitle: 'Crop It');
-
-//     setState(() {
-//       _imageFile = cropped ?? _imageFile;
-//     });
-//   }
-
-//   /// Select an image via gallery or camera
-//   Future<void> _pickImage(ImageSource source) async {
-//     File selected = await ImagePicker.pickImage(source: source);
-
-//     setState(() {
-//       _imageFile = selected;
-//     });
-//   }
-
-//   /// Remove image
-//   void _clear() {
-//     setState(() => _imageFile = null);
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       // Select an image from the camera or gallery
-//       bottomNavigationBar: BottomAppBar(
-//         child: Row(
-//           children: <Widget>[
-//             IconButton(
-//               icon: Icon(Icons.photo_camera),
-//               onPressed: () => _pickImage(ImageSource.camera),
-//             ),
-//             IconButton(
-//               icon: Icon(Icons.photo_library),
-//               onPressed: () => _pickImage(ImageSource.gallery),
-//             ),
-//           ],
-//         ),
-//       ),
-
-//       // Preview the image and crop it
-//       body: ListView(
-//         children: <Widget>[
-//           if (_imageFile != null) ...[
-//             Image.file(_imageFile),
-//             Row(
-//               children: <Widget>[
-//                 FlatButton(
-//                   child: Icon(Icons.crop),
-//                   onPressed: _cropImage,
-//                 ),
-//                 FlatButton(
-//                   child: Icon(Icons.refresh),
-//                   onPressed: _clear,
-//                 ),
-//               ],
-//             ),
-//             Uploader(file: _imageFile)
-//           ]
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// class _UploaderState extends State<Uploader> {
-//   final FirebaseStorage _storage =
-//       FirebaseStorage(storageBucket: 'gs://fireship-lessons.appspot.com');
-
-//   StorageUploadTask _uploadTask;
-
-//   /// Starts an upload task
-//   void _startUpload() {
-//     /// Unique file name for the file
-//     String filePath = 'images/${DateTime.now()}.png';
-
-//     setState(() {
-//       _uploadTask = _storage.ref().child(filePath).putFile(widget.file);
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (_uploadTask != null) {
-//       /// Manage the task state and event subscription with a StreamBuilder
-//       return StreamBuilder<StorageTaskEvent>(
-//           stream: _uploadTask.events,
-//           builder: (_, snapshot) {
-//             var event = snapshot?.data?.snapshot;
-
-//             double progressPercent = event != null
-//                 ? event.bytesTransferred / event.totalByteCount
-//                 : 0;
-
-//             return Column(
-//               children: [
-//                 if (_uploadTask.isComplete) Text('🎉🎉🎉'),
-
-//                 if (_uploadTask.isPaused)
-//                   FlatButton(
-//                     child: Icon(Icons.play_arrow),
-//                     onPressed: _uploadTask.resume,
-//                   ),
-
-//                 if (_uploadTask.isInProgress)
-//                   FlatButton(
-//                     child: Icon(Icons.pause),
-//                     onPressed: _uploadTask.pause,
-//                   ),
-
-//                 // Progress bar
-//                 LinearProgressIndicator(value: progressPercent),
-//                 Text('${(progressPercent * 100).toStringAsFixed(2)} % '),
-//               ],
-//             );
-//           });
-//     } else {
-//       // Allows user to decide when to start the upload
-//       return FlatButton.icon(
-//         label: Text('Upload to Firebase'),
-//         icon: Icon(Icons.cloud_upload),
-//         onPressed: _startUpload,
-//       );
-//     }
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    const Color mint = Color.fromARGB(255, 162, 228, 184);
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: mint,
+        title: Row(
+          children: [
+            Image.asset('lib/images/medicode_logo.png', height: 40),
+            const SizedBox(width: 10),
+            Text('Medicode', style: TextStyle(color: Colors.black)),
+          ],
+          mainAxisAlignment: MainAxisAlignment
+              .start, // Aligns title Row to the start of AppBar
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.white, // Button background color
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18), // Rounded edges
+              ),
+            ),
+            child: Text(
+              'Log In',
+              style: TextStyle(
+                fontWeight: FontWeight.bold, // Make the text bold
+              ),
+            ),
+          ),
+          const SizedBox(width: 10), // Spacing after button
+        ],
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          // Use SingleChildScrollView to avoid overflow and allow scrolling
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(100.0, 10.0, 100.0, 10),
+                child: Image.asset('lib/images/heart.jpeg'),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(28.0, 0, 28.0, 20.0),
+                child: Text(
+                  'Before using Medicode, please read the Terms of Service and remember:',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.notoSerif(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '• Medicode is for informational purposes only – not a substitute for professional medical advice, diagnosis, or treatment.',
+                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
+                    ),
+                    Text(
+                      '• Always consult your physician or a qualified health provider with any questions regarding a medical condition.',
+                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
+                    ),
+                    Text(
+                      '• Do not disregard professional medical advice or delay seeking it based on information from this app.',
+                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                  height: 20), // Adjust the space before the buttons as needed
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (_) => IntroScreen()));
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: mint,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
+                    ),
+                    child: const Text("Back",
+                        style: TextStyle(color: Colors.black, fontSize: 16)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => UploadPage())
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: mint,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
+                    ),
+                    child: const Text("Next",
+                        style: TextStyle(color: Colors.black, fontSize: 16)),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                  height:
+                  20), // Adjust the space at the bottom of the screen as needed
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
