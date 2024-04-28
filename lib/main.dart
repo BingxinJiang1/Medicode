@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'pages/intro_screen.dart';
+import 'package:gemini/supabase_manager.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SupabaseManager.init();
   runApp(const MyApp());
 }
 
