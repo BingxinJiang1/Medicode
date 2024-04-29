@@ -3,8 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to the photo library to allow users to select photos for uploading and editing within the app.</string>
 	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to the camera to enable photo and video capture directly within the app, allowing users to create and share content.</string>
 	<key>NSMicrophoneUsageDescription</key>
+	<string>Access to the microphone is needed for audio recording during video captures, enhancing the app's video functionality.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
