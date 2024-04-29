@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:gemini/constants.dart';
+import 'package:gemini/pages/feedback.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gemini/pages/intro_screen.dart';
-import 'package:gemini/pages/upload_page.dart';
+import 'dart:io';
+import 'package:flutter/widgets.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
 
-class UploadPage extends StatelessWidget {
-  const UploadPage({super.key});
+class ReportImage extends StatefulWidget {
+  const ReportImage({super.key});
+
+  @override
+  _ReportImageState createState() => _ReportImageState();
+}
+
+class _ReportImageState extends State<ReportImage> {
+  final TextEditingController _textController = TextEditingController();
+  final Color mint = Color.fromARGB(255, 162, 228, 184); // Use mint color for buttons
 
   @override
   Widget build(BuildContext context) {
-    const Color mint = Color.fromARGB(255, 162, 228, 184);
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -49,92 +62,217 @@ class UploadPage extends StatelessWidget {
         ],
         elevation: 0,
       ),
-      body: SafeArea(
+      body: Center(
         child: SingleChildScrollView(
-          // Use SingleChildScrollView to avoid overflow and allow scrolling
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(100.0, 10.0, 100.0, 10),
                 child: Image.asset('lib/images/heart.jpeg'),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(28.0, 0, 28.0, 20.0),
-                child: Text(
-                  'Before using Medicode, please read the Terms of Service and remember:',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.notoSerif(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                padding: const EdgeInsets.symmetric(
+                    horizontal:
+                        20.0), // Reduced horizontal padding for wider TextField
+                child: Container(
+                  height: 100,
+                  child: TextField(
+                    controller: _textController,
+                    decoration: InputDecoration(
+                      border:
+                          OutlineInputBorder(), // Rectangle appearance with a border
+                      labelText:
+                          'Enter text to upload', // Label inside the text field
+                      alignLabelWithHint: true,
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 20.0, horizontal: 20.0), // Padding inside
+                    ),
+                    style: TextStyle(fontSize: 16),
+                    keyboardType: TextInputType.multiline,
+                    minLines: 10,
+                    maxLines: null, // Allows unlimited lines
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '• Medicode is for informational purposes only – not a substitute for professional medical advice, diagnosis, or treatment.',
-                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
-                    ),
-                    Text(
-                      '• Always consult your physician or a qualified health provider with any questions regarding a medical condition.',
-                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
-                    ),
-                    Text(
-                      '• Do not disregard professional medical advice or delay seeking it based on information from this app.',
-                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => uploadText(context),
+                style: buttonStyle(),
+                child: const Text('Upload Text',
+                    style: TextStyle(color: Colors.black, fontSize: 16)),
               ),
-              const SizedBox(
-                  height: 20), // Adjust the space before the buttons as needed
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (_) => IntroScreen()));
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: mint,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                    ),
-                    child: const Text("Back",
-                        style: TextStyle(color: Colors.black, fontSize: 16)),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => UploadPage())
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: mint,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                    ),
-                    child: const Text("Next",
-                        style: TextStyle(color: Colors.black, fontSize: 16)),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                  height:
-                  20), // Adjust the space at the bottom of the screen as needed
+              SizedBox(height: 20),
+              DividerWithText(dividerText: "OR"),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => uploadImages(context),
+                style: buttonStyle(),
+                child: const Text('Upload Screenshots',
+                    style: TextStyle(color: Colors.black, fontSize: 16)),
+              ),           
+              SizedBox(height: 120),
+              navigationButtons(context),
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
     );
   }
+
+  ButtonStyle buttonStyle() {
+    return ElevatedButton.styleFrom(
+      backgroundColor: mint,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    );
+  }
+
+  Widget navigationButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DisclaimerPage()));
+            }
+          },
+          style: buttonStyle(),
+          child: const Text("Back", style: TextStyle(color: Colors.black, fontSize: 16)),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FeedbackPage()));
+          },
+          style: buttonStyle(),
+          child: const Text("Next", style: TextStyle(color: Colors.black, fontSize: 16)),
+        ),
+      ],
+    );
+  }
 }
+
+class DividerWithText extends StatelessWidget {
+  final String dividerText;
+  const DividerWithText({Key? key, required this.dividerText}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Expanded(child: Divider()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text(dividerText),
+        ),
+        Expanded(child: Divider()),
+      ],
+    );
+  }
+}
+
+  Future<void> uploadImages(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile>? images = await picker.pickMultiImage();
+    if (images == null || images.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('No images selected')));
+      return;
+    }
+    for (var image in images) {
+      final imageExtension = image.path.split('.').last.toLowerCase();
+      final imageBytes = await image.readAsBytes();
+      final imagePath =
+          'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
+      try {
+        await supabase.storage.from('report_images').uploadBinary(
+              imagePath,
+              imageBytes,
+              fileOptions: FileOptions(
+                upsert: true,
+                contentType: 'image/$imageExtension',
+              ),
+            );
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Image successfully uploaded')));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to upload image: $e')));
+      }
+    }
+  }
+
+  void uploadText(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Text successfully uploaded')),
+    );
+    // Implement actual text upload logic as needed
+  }
+
+
+
+// class ReportImage extends StatelessWidget {
+//   const ReportImage({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text("Upload Images"),
+//       ),
+//       body: Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             ElevatedButton(
+//               onPressed: () async {
+//                 final ImagePicker picker = ImagePicker();
+//                 final List<XFile>? images = await picker.pickMultiImage();
+//                 if (images == null || images.isEmpty) {
+//                   ScaffoldMessenger.of(context).showSnackBar(
+//                     SnackBar(content: Text('No images selected')),
+//                   );
+//                   return;
+//                 }
+//                 for (var image in images) {
+//                   final imageExtension =
+//                       image.path.split('.').last.toLowerCase();
+//                   final imageBytes = await image.readAsBytes();
+//                   //final userId = supabase.auth.currentUser!.id;
+//                   final imagePath =
+//                       'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
+//                   try {
+//                     await supabase.storage.from('report_images').uploadBinary(
+//                           imagePath,
+//                           imageBytes,
+//                           fileOptions: FileOptions(
+//                             upsert: true,
+//                             contentType: 'image/$imageExtension',
+//                           ),
+//                         );
+//                     String imageUrl = supabase.storage
+//                         .from('report_images')
+//                         .getPublicUrl(imagePath);
+//                     ScaffoldMessenger.of(context).showSnackBar(
+//                       SnackBar(content: Text('Image successfully uploaded')),
+//                     );
+//                   } catch (e) {
+//                     ScaffoldMessenger.of(context).showSnackBar(
+//                       SnackBar(content: Text('Failed to upload image: $e')),
+//                     );
+//                   }
+//                 }
+//               },
+//               child: const Text('Upload Images'),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
