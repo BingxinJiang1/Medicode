@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:gemini/constants.dart';
+import 'package:gemini/components/constants.dart';
 import 'package:gemini/pages/signup.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gemini/pages/disclaimer_screen.dart';
+import 'account_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -50,7 +50,7 @@ class LoginPageState extends State<LoginPage> {
 
         _redirecting = true;
         // Navigator.of(context).pushReplacementNamed('/home');
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const DisclaimerPage()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AccountPage()));
       }
     } on AuthException catch (error) {
       context.showErrorSnackBar(message: error.message);
@@ -140,75 +140,4 @@ class LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   const Color mint = Color.fromARGB(255, 162, 228, 184);
-  //   final TextEditingController emailController = TextEditingController();
-  //   final TextEditingController passwordController = TextEditingController();
-  //
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       backgroundColor: mint,
-  //       title: Text('Login', style: GoogleFonts.notoSerif()),
-  //       centerTitle: true,
-  //     ),
-  //     body: Padding(
-  //       padding: EdgeInsets.all(20),
-  //       child: Column(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: <Widget>[
-  //           TextField(
-  //             controller: emailController,
-  //             decoration: InputDecoration(
-  //               labelText: 'Email',
-  //               border: OutlineInputBorder(),
-  //             ),
-  //           ),
-  //           SizedBox(height: 20),
-  //           TextField(
-  //             controller: passwordController,
-  //             decoration: InputDecoration(
-  //               labelText: 'Password',
-  //               border: OutlineInputBorder(),
-  //             ),
-  //             obscureText: true,
-  //           ),
-  //           SizedBox(height: 20),
-  //           ElevatedButton(
-  //             // onPressed: () => login(context),
-  //             onPressed: () async {
-  //               if (_formKey.currentState!.validate()) {
-  //                 _signIn();
-  //               }
-  //             },
-  //             child: Text('Log In'),
-  //           ),
-  //           SizedBox(height: 20),
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.center,
-  //             children: <Widget>[
-  //               Text("Don't have an account? "),
-  //               GestureDetector(
-  //                 onTap: () {
-  //                   Navigator.push(
-  //                     context,
-  //                     MaterialPageRoute(builder: (context) => const SignUpPage()),
-  //                   );
-  //                 },
-  //                 child: Text(
-  //                   'Sign Up',
-  //                   style: TextStyle(
-  //                     fontWeight: FontWeight.bold,
-  //                     color: Colors.blue,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 }

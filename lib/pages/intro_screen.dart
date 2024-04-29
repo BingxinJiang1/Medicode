@@ -26,7 +26,7 @@ class IntroScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const DisclaimerPage()),
+                MaterialPageRoute(builder: (context) => const LoginPage()),
               );
             },
             style: TextButton.styleFrom(
