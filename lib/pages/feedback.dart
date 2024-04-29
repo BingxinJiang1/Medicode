@@ -4,8 +4,8 @@ import 'package:gemini/pages/intro_screen.dart';
 import 'package:gemini/pages/upload_page.dart';
 import 'package:gemini/pages/login.dart';
 
-class DisclaimerPage extends StatelessWidget {
-  const DisclaimerPage({super.key});
+class FeedbackPage extends StatelessWidget {
+  const FeedbackPage({super.key});
 
   @override
   Widget build(BuildContext context) {
