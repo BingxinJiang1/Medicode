@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:gemini/constants.dart';
+import 'package:gemini/components/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gemini/pages/disclaimer_screen.dart';
+import 'account_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -48,7 +48,7 @@ class SignUpPageState extends State<SignUpPage> {
         _passwordController.clear();
 
         _redirecting = true;
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const DisclaimerPage()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AccountPage()));
       }
     } on AuthException catch (error) {
       context.showErrorSnackBar(message: error.message);
