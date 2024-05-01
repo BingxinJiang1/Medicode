@@ -15,11 +15,11 @@ class display_report_image extends StatelessWidget  {
         SizedBox(
           width: 150,
           height: 150,
-          child: Text(imageUrl)
-          // Image.network(
-          //         imageUrl,
-          //         fit: BoxFit.cover,
-          //       )
+          child: 
+          Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                )
         ),
         SizedBox(
           width: 150,

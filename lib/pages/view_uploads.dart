@@ -55,11 +55,13 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   //gets PublicUrl string for a given user and a given fileUrl
   //fileUrl must be just the file name and extension, no folders should be in the path
   String _getPublicUrl(String fileUrl) {
+    // return '$userId/$fileUrl'; 
     try {
         final String publicUrl = supabase
         .storage
         .from('report_images')
-        .getPublicUrl('/$userId/fileUrl');
+        .getPublicUrl('$userId/$fileUrl');
+        print(publicUrl);
         return publicUrl;
     } catch (error) {
       SnackBar(
@@ -133,7 +135,8 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                 return Container(
                   height: 60,
                   child: Center(
-                    child: display_report_image(
+                    child: 
+                    display_report_image(
                       fileUrl: '${_files_list[index].name}',
                       imageUrl: _getPublicUrl(_files_list[index].name)
                       )
