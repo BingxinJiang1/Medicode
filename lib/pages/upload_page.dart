@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gemini/constants.dart';
+import 'package:gemini/components/constants.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
