@@ -58,6 +58,9 @@ class _AvatarState extends State<Avatar> {
       maxHeight: 300,
     );
     if (imageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No image selected')),
+      );
       return;
     }
     setState(() => _isLoading = true);
@@ -65,8 +68,9 @@ class _AvatarState extends State<Avatar> {
     try {
       final bytes = await imageFile.readAsBytes();
       final fileExt = imageFile.path.split('.').last;
+      final userId = supabase.auth.currentUser!.id;  // Ensure the user is logged in
       final fileName = '${DateTime.now().toIso8601String()}.$fileExt';
-      final filePath = fileName;
+      final filePath = 'avatars/$userId/$fileName';  // Changed to include user directory
       await supabase.storage.from('avatars').uploadBinary(
         filePath,
         bytes,
@@ -74,7 +78,7 @@ class _AvatarState extends State<Avatar> {
       );
       final imageUrlResponse = await supabase.storage
           .from('avatars')
-          .createSignedUrl(filePath, 60 * 60 * 24 * 365 * 10);
+          .createSignedUrl(filePath, 60 * 60 * 24 * 365 * 10);  // 10 years expiration
       widget.onUpload(imageUrlResponse);
     } on StorageException catch (error) {
       if (mounted) {
