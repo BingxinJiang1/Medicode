@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gemini/components/constants.dart';
 import 'package:gemini/pages/feedback.dart';
+import 'package:gemini/pages/view_uploads.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -148,7 +148,7 @@ class _ReportImageState extends State<ReportImage> {
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FeedbackPage()));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ViewUploadsPage()));
           },
           style: buttonStyle(),
           child: const Text("Next", style: TextStyle(color: Colors.black, fontSize: 16)),
