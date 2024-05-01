@@ -4,6 +4,7 @@ import 'package:gemini/pages/upload_page.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/intro_screen.dart';
 import 'package:gemini/components/constants.dart';
+import 'package:gemini/components/display_report_image.dart';
 
 
 
@@ -20,7 +21,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   // String? _avatarUrl;
   final userId = supabase.auth.currentSession!.user.id;
   final Color mint = Color.fromARGB(255, 162, 228, 184);
-  int len = -1;
+  int len = 0;
   var _files_list = null;
   var _loading = true;
 
@@ -100,7 +101,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
         children: [
           
           const SizedBox(height: 18),
-          Text(userId),
+          Text('You are logged in as user_id: $userId'),
           Text(len.toString()),
           const SizedBox(height: 18),
           // TextButton(onPressed: _signOut, child: const Text('Sign Out')),
@@ -110,13 +111,13 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
               itemCount: len,
               itemBuilder: (BuildContext context, int index) {
                 return Container(
-                  color: Colors.green,
                   height: 60,
                   child: Center(
-                    child: Text(
-                      '${_files_list[index].name}',
-                      style: const TextStyle(color: Colors.black, fontSize: 16),
-                    ),
+                    child: display_report_image(fileUrl: '${_files_list[index].name}')
+                    // Text(
+                    //   '${_files_list[index].name}',
+                    //   style: const TextStyle(color: Colors.black, fontSize: 16),
+                    // ),
                   ),
                 );
               }),
