@@ -36,7 +36,6 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
           .list(path: userId);
         len = userFiles.length;
         _files_list = userFiles;
-        // len = 2000;
       } catch (error) {
       SnackBar(
         content: const Text('Unexpected error occurred'),
@@ -99,16 +98,28 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
           : ListView(
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         children: [
-          // Avatar(
-          //   imageUrl: _avatarUrl,
-          //   onUpload: _onUpload,
-          // ),
+          
           const SizedBox(height: 18),
           Text(userId),
           Text(len.toString()),
           const SizedBox(height: 18),
           // TextButton(onPressed: _signOut, child: const Text('Sign Out')),
-          
+          ListView.builder(
+              physics: ScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: len,
+              itemBuilder: (BuildContext context, int index) {
+                return Container(
+                  color: Colors.green,
+                  height: 60,
+                  child: Center(
+                    child: Text(
+                      '${_files_list[index].name}',
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                    ),
+                  ),
+                );
+              }),
           navigationButtons(context)
         ],
       ),
