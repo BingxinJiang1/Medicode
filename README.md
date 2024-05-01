@@ -1,6 +1,6 @@
 # Readable Patient Information Project
 
-A new Flutter project.
+A new Flutter project for IOS and Android Apps.
 
 ## Getting Started
 
