@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gemini/constants.dart';
+//import 'package:gemini/constants.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
@@ -9,6 +9,8 @@ import 'package:flutter/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
+
+import '../components/constants.dart';
 
 class ReportImage extends StatefulWidget {
   const ReportImage({super.key});
