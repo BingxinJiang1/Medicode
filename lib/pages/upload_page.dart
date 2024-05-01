@@ -11,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
 
 import '../components/constants.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ReportImage extends StatefulWidget {
   const ReportImage({super.key});
@@ -22,6 +24,33 @@ class ReportImage extends StatefulWidget {
 class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
   final Color mint = Color.fromARGB(255, 162, 228, 184); // Use mint color for buttons
+
+  void uploadText(BuildContext context) async {
+    try {
+      // Call the simplify text API
+      var simplifiedText = await simplifyMedicalText(_textController.text);
+
+      // Inform the user of success before navigating
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Text successfully uploaded')),
+      );
+
+      // // Delay navigation to allow the user to read the SnackBar
+      // await Future.delayed(Duration(seconds: 2));
+      //
+      // // Navigate to FeedbackPage with the results
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => FeedbackPage(apiResults: simplifiedText),
+      //   ),
+      // );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload text: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,15 +234,52 @@ class DividerWithText extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to upload image: $e')));
       }
+
+      // try {
+      //   // Use an OCR library or service here to extract text from the image
+      //   final extractedText = await performOCR(image.path);
+      //   final simplifiedText = await simplifyMedicalText(extractedText);
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(content: Text('Text successfully simplified: $simplifiedText')),
+      //   );
+      // } catch (e) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(content: Text('Error processing image: $e')),
+      //   );
+      // }
     }
   }
 
-  void uploadText(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Text successfully uploaded')),
-    );
-    // Implement actual text upload logic as needed
+// Future<String> performOCR(String imagePath) async {
+//   final FirebaseVisionImage visionImage = FirebaseVisionImage.fromFilePath(imagePath);
+//   final TextRecognizer textRecognizer = FirebaseVision.instance.textRecognizer();
+//   final VisionText visionText = await textRecognizer.processImage(visionImage);
+//
+//   // Concatenate all text blocks into a single string
+//   return visionText.blocks.map((block) => block.text).join(' ');
+// }
+
+
+Future<void> simplifyMedicalText(String inputText) async {
+  var url = Uri.parse('https://api.geminiapi.com/v1/simplify'); // Replace with the actual URL
+  var response = await http.post(
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI'  // API key
+    },
+    body: jsonEncode({
+      'text': inputText,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var data = jsonDecode(response.body);
+    return data['simplifiedText']; // Assuming the response contains a field `simplifiedText`
+  } else {
+    throw Exception('Failed to simplify text: ${response.body}');
   }
+}
 
 
 
