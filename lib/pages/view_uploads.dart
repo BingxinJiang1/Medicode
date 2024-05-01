@@ -25,7 +25,8 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   var _files_list = null;
   var _loading = true;
 
-  /// Called once a user id is received within `onAuthenticated()`
+  /// get all files in storage bucket report_images 
+  /// CURRENTLY ASSUMES user is authenticated. There will be errors if user is not auth.
   Future<void> _getStorageFiles() async {
     setState(() {
       _loading = true;
@@ -50,6 +51,24 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
       }
     }
     }
+
+  //gets PublicUrl string for a given user and a given fileUrl
+  //fileUrl must be just the file name and extension, no folders should be in the path
+  String _getPublicUrl(String fileUrl) {
+    try {
+        final String publicUrl = supabase
+        .storage
+        .from('report_images')
+        .getPublicUrl('/$userId/fileUrl');
+        return publicUrl;
+    } catch (error) {
+      SnackBar(
+        content: const Text('Unexpected error occurred'),
+        backgroundColor: Theme.of(context).colorScheme.error,
+      );
+      return 'No file image found.';
+    }
+  }
 
   @override
   void initState() {
@@ -114,7 +133,10 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                 return Container(
                   height: 60,
                   child: Center(
-                    child: display_report_image(fileUrl: '${_files_list[index].name}')
+                    child: display_report_image(
+                      fileUrl: '${_files_list[index].name}',
+                      imageUrl: _getPublicUrl(_files_list[index].name)
+                      )
                     // Text(
                     //   '${_files_list[index].name}',
                     //   style: const TextStyle(color: Colors.black, fontSize: 16),

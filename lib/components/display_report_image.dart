@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 class display_report_image extends StatelessWidget  {
   final String fileUrl;
+  final String imageUrl;
 
   //constructor with required parameters
-  const display_report_image({required this.fileUrl});
+  const display_report_image({
+    required this.fileUrl,
+    required this.imageUrl});
   @override
   Widget build(BuildContext context) {//<-- Error here
     return Row(
@@ -12,13 +15,18 @@ class display_report_image extends StatelessWidget  {
         SizedBox(
           width: 150,
           height: 150,
-          child: Text(fileUrl)
+          child: Text(imageUrl)
           // Image.network(
           //         imageUrl,
           //         fit: BoxFit.cover,
           //       )
+        ),
+        SizedBox(
+          width: 150,
+          height: 150,
+          child: Text(fileUrl)
         )
-      ]
+      ], 
     );
   }
 }
