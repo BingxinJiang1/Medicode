@@ -169,13 +169,16 @@ class DividerWithText extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Text(dividerText),
         ),
-        Expanded(child: Divider()),
+        Expanded(child: Divider())
       ],
     );
   }
 }
 
   Future<void> uploadImages(BuildContext context) async {
+    final userId = supabase.auth.currentSession!.user.id;
+
+
     final ImagePicker picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
     if (images == null || images.isEmpty) {
@@ -187,7 +190,7 @@ class DividerWithText extends StatelessWidget {
       final imageExtension = image.path.split('.').last.toLowerCase();
       final imageBytes = await image.readAsBytes();
       final imagePath =
-          'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
+          '$userId/report_${DateTime.now().toIso8601String()}.$imageExtension';
       try {
         await supabase.storage.from('report_images').uploadBinary(
               imagePath,
