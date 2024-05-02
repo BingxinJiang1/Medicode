@@ -41,10 +41,15 @@ class displayReportImageState extends State<displayReportImage> {
       ])];
 
       final response = await model.generateContent(convertedText);
-      print(response.text);
+
       setState(() {
           responseText = response.text;
         });
+
+      await supabase.from('files_converted').insert({'user_id': supabase.auth.currentSession!.user.id,
+                                     'image_url': widget.fileUrl,
+                                     'image_text': responseText});
+      
     } catch (error)  {
       print(error);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,7 +62,7 @@ class displayReportImageState extends State<displayReportImage> {
     Widget build(BuildContext context) {
       return MaterialButton(
           hoverColor: mint,
-          onPressed: () {geminiAnalyze(); print('done!');},
+          onPressed: () {geminiAnalyze();},
           child: Row(
           children: [
             SizedBox(
