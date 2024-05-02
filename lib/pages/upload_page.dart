@@ -12,7 +12,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
 import 'dart:io';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import '../components/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 

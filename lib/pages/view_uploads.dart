@@ -137,7 +137,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                   height: 60,
                   child: Center(
                     child: 
-                    display_report_image(
+                    displayReportImage(
                       fileUrl: '${_files_list[index].name}',
                       imageUrl: _getPublicUrl(_files_list[index].name)
                       )
