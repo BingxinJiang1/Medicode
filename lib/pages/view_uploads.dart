@@ -51,7 +51,6 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
       }
     }
     }
-
   
   @override
   void initState() {
