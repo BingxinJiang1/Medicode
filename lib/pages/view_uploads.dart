@@ -19,7 +19,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   // final _usernameController = TextEditingController();
   // final _websiteController = TextEditingController();
   // String? _avatarUrl;
-  final userId = supabase.auth.currentSession!.user.id;
+  final userId = supabase.auth.currentSession == null ? null : supabase.auth.currentSession!.user.id;
   final Color mint = Color.fromARGB(255, 162, 228, 184);
   int len = 0;
   var _files_list = null;
