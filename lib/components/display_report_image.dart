@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gemini/components/constants.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:gemini/pages/feedback.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -21,8 +22,9 @@ class displayReportImage extends StatefulWidget  {
 class displayReportImageState extends State<displayReportImage> {
   final Color mint = Color.fromARGB(255, 162, 228, 184);
   String? responseText;
+  String? apiResults;
 
-  void geminiAnalyze() async {
+  void geminiImageToText() async {
     const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
     final model = GenerativeModel(model: 'gemini-pro-vision', apiKey: apiKey);
     const prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
@@ -58,11 +60,50 @@ class displayReportImageState extends State<displayReportImage> {
     }
   }
     
+  void geminiAnalyze() async {
+    final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
+
+    try {
+      final content = [Content.text('$responseText')];
+      final response = await model.generateContent(content);
+      var generatedText = response.text ?? "No result generated";
+
+      // Store result in state
+      setState(() {
+        apiResults = generatedText;
+      });
+      print(apiResults);
+
+      // Inform the user of success
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Text successfully uploaded and analyzed')),
+      );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload text: $e')),
+      );
+    }
+  }
+  
     @override
     Widget build(BuildContext context) {
       return MaterialButton(
           hoverColor: mint,
-          onPressed: () {geminiAnalyze();},
+          onPressed: () {
+              geminiImageToText();
+              geminiAnalyze();
+              if (apiResults != null && apiResults!.isNotEmpty) {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('No results')),
+                );
+              }
+            },
           child: Row(
           children: [
             SizedBox(
