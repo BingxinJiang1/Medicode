@@ -24,7 +24,7 @@ class displayReportImageState extends State<displayReportImage> {
 
   void geminiAnalyze() async {
     const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
-    final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
+    final model = GenerativeModel(model: 'gemini-pro-vision', apiKey: apiKey);
     const prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
 
     try {
@@ -39,13 +39,14 @@ class displayReportImageState extends State<displayReportImage> {
           TextPart(prompt),
           DataPart('image/png', imageBytes),
       ])];
-      
+
       final response = await model.generateContent(convertedText);
       print(response.text);
       setState(() {
           responseText = response.text;
         });
     } catch (error)  {
+      print(error);
       ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to convert image into text: $error'))
       );
