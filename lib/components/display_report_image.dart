@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 class displayReportImage extends StatefulWidget  {
+  //fileUrl MUST CONTAIN: the file name and extension, AND ALL folders that should be in the path
   final String fileUrl;
   final String imageUrl;
 
@@ -19,19 +20,20 @@ class displayReportImage extends StatefulWidget  {
 
 class displayReportImageState extends State<displayReportImage> {
   final Color mint = Color.fromARGB(255, 162, 228, 184);
+  String? responseText;
 
   void geminiAnalyze() async {
-    final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
-    final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey!);
-    final prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
+    const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
+    const prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
 
     try {
-      final Uint8List raw_file = await supabase
+      print(widget.fileUrl);
+      final Uint8List imageBytes = await supabase
         .storage
         .from('report_images')
         .download(widget.fileUrl);
       
-      final imageBytes = await File.fromRawPath(raw_file).readAsBytes();
       final convertedText = [
          Content.multi([
           TextPart(prompt),
@@ -40,6 +42,9 @@ class displayReportImageState extends State<displayReportImage> {
       
       final response = await model.generateContent(convertedText);
       print(response.text);
+      setState(() {
+          responseText = response.text;
+        });
     } catch (error)  {
       ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to convert image into text: $error'))
@@ -51,7 +56,7 @@ class displayReportImageState extends State<displayReportImage> {
     Widget build(BuildContext context) {
       return MaterialButton(
           hoverColor: mint,
-          onPressed: () {print("Pressed!");},
+          onPressed: () {geminiAnalyze(); print('done!');},
           child: Row(
           children: [
             SizedBox(
