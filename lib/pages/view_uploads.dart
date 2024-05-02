@@ -53,14 +53,14 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
     }
 
   //gets PublicUrl string for a given user and a given fileUrl
-  //fileUrl must be just the file name and extension, no folders should be in the path
+  //fileUrl MUST CONTAIN: the file name and extension, AND ALL folders that should be in the path
   String _getPublicUrl(String fileUrl) {
     // return '$userId/$fileUrl'; 
     try {
         final String publicUrl = supabase
         .storage
         .from('report_images')
-        .getPublicUrl('$userId/$fileUrl');
+        .getPublicUrl(fileUrl);
         print(publicUrl);
         return publicUrl;
     } catch (error) {
@@ -123,9 +123,10 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
           
           const SizedBox(height: 18),
           Text('You are logged in as user_id: $userId'),
-          // const Text('Not you? Sign out and log into a different account),
+          // const Text('Not you? Sign out and log into a different account'),
           // TextButton(onPressed: _signOut, child: const Text('Sign Out')),
-          Text(len.toString()),
+          Divider(),
+          Text('Number of uploaded images: ${len.toString()}'),
           const SizedBox(height: 18),
           ListView.builder(
               physics: ScrollPhysics(),
@@ -136,9 +137,9 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                   height: 60,
                   child: Center(
                     child: 
-                    display_report_image(
-                      fileUrl: '${_files_list[index].name}',
-                      imageUrl: _getPublicUrl(_files_list[index].name)
+                    displayReportImage(
+                      fileUrl: '$userId/${_files_list[index].name}',
+                      imageUrl: _getPublicUrl('$userId/${_files_list[index].name}')
                       )
                     // Text(
                     //   '${_files_list[index].name}',
@@ -147,6 +148,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                   ),
                 );
               }),
+          const SizedBox(height: 50),
           navigationButtons(context)
         ],
       ),

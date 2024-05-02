@@ -12,7 +12,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
 import 'dart:io';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import '../components/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -67,7 +66,7 @@ class _ReportImageState extends State<ReportImage> {
   Future<void> uploadImages(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
-    final _userId = supabase.auth.currentSession!.user.id;
+    final _userId = supabase.auth.currentSession == null ? null : supabase.auth.currentSession!.user.id;
 
     if (images == null || images.isEmpty) {
       ScaffoldMessenger.of(context)
@@ -77,8 +76,8 @@ class _ReportImageState extends State<ReportImage> {
     for (var image in images) {
       final imageExtension = image.path.split('.').last.toLowerCase();
       final imageBytes = await image.readAsBytes();
-      final imagePath = _userId == null
-          ? '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
+      final imagePath = _userId != null ?
+            '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
           : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
       setState(() {
         UploadedFileCount = images.length;
