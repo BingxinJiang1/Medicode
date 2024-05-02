@@ -15,7 +15,7 @@ class display_report_image extends StatelessWidget  {
 
     return MaterialButton(
         hoverColor: mint,
-        onPressed: () {},
+        onPressed: () {print("Pressed!");},
         child: Row(
         children: [
           SizedBox(
