@@ -22,6 +22,7 @@ class ReportImage extends StatefulWidget {
 class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
   final Color mint = Color.fromARGB(255, 162, 228, 184); // Use mint color for buttons
+  final _userId = supabase.auth.currentSession!.user.id;
 
   @override
   Widget build(BuildContext context) {
@@ -132,6 +133,7 @@ class _ReportImageState extends State<ReportImage> {
   }
 
   Widget navigationButtons(BuildContext context) {
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -148,7 +150,9 @@ class _ReportImageState extends State<ReportImage> {
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ViewUploadsPage()));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => _userId == null ? 
+                                                                                       const ViewUploadsPage() 
+                                                                                     : const FeedbackPage()));
           },
           style: buttonStyle(),
           child: const Text("Next", style: TextStyle(color: Colors.black, fontSize: 16)),
@@ -161,7 +165,7 @@ class _ReportImageState extends State<ReportImage> {
 class DividerWithText extends StatelessWidget {
   final String dividerText;
   const DividerWithText({Key? key, required this.dividerText}) : super(key: key);
-
+  
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -178,11 +182,10 @@ class DividerWithText extends StatelessWidget {
 }
 
   Future<void> uploadImages(BuildContext context) async {
-    final userId = supabase.auth.currentSession!.user.id;
-
-
     final ImagePicker picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
+    final _userId = supabase.auth.currentSession!.user.id;
+
     if (images == null || images.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('No images selected')));
@@ -191,8 +194,9 @@ class DividerWithText extends StatelessWidget {
     for (var image in images) {
       final imageExtension = image.path.split('.').last.toLowerCase();
       final imageBytes = await image.readAsBytes();
-      final imagePath =
-          '$userId/report_${DateTime.now().toIso8601String()}.$imageExtension';
+      final imagePath = _userId == null ?
+            '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
+          : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
       try {
         await supabase.storage.from('report_images').uploadBinary(
               imagePath,
