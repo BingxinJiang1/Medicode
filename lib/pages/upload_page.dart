@@ -64,7 +64,7 @@ class _ReportImageState extends State<ReportImage> {
   Future<void> uploadImages(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
-    final _userId = supabase.auth.currentSession!.user.id;
+    final _userId = supabase.auth.currentSession == null ? null : supabase.auth.currentSession!.user.id;
 
     if (images == null || images.isEmpty) {
       ScaffoldMessenger.of(context)
