@@ -24,13 +24,12 @@ class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
   final Color mint = Color.fromARGB(255, 162, 228, 184); // Use mint color for buttons
   final _userId = supabase.auth.currentSession == null ? null : supabase.auth.currentSession!.user.id;
-  List<String> _ImagePaths = [];
+  int UploadedFileCount = 0;
   
 
   Future<void> uploadImages(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
-    _ImagePaths = [];
     
     if (images == null || images.isEmpty) {
       ScaffoldMessenger.of(context)
@@ -43,10 +42,9 @@ class _ReportImageState extends State<ReportImage> {
       final imagePath = _userId != null ?
             '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
           : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
-      _ImagePaths.add(imagePath);
 
       setState(() {
-        _ImagePaths = _ImagePaths;
+        UploadedFileCount = images.length;
       });
       
       try {
@@ -165,20 +163,7 @@ class _ReportImageState extends State<ReportImage> {
                     style: TextStyle(color: Colors.black, fontSize: 16)),
               ),           
               SizedBox(height: 20),
-              Text('Uploaded Images Below'),
-              ListView.builder(
-                physics: ScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: _ImagePaths.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    height: 60,
-                    child: Center(
-                      child: display_report_image(fileUrl: _ImagePaths[index])
-                    ),
-                  );
-                }
-              ),
+              Text('Number of Uploaded Images: $UploadedFileCount'),
               SizedBox(height: 120),
               navigationButtons(context),
               const SizedBox(height: 20),
