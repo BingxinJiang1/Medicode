@@ -23,8 +23,49 @@ class ReportImage extends StatefulWidget {
 class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
   final Color mint = Color.fromARGB(255, 162, 228, 184); // Use mint color for buttons
-  final _userId = supabase.auth.currentSession!.user.id;
-  String? _imageUrl = null;
+  final _userId = supabase.auth.currentSession == null ? null : supabase.auth.currentSession!.user.id;
+
+  Future<void> uploadImages(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile>? images = await picker.pickMultiImage();
+    final _userId = supabase.auth.currentSession!.user.id;
+
+    if (images == null || images.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('No images selected')));
+      return;
+    }
+    for (var image in images) {
+      final imageExtension = image.path.split('.').last.toLowerCase();
+      final imageBytes = await image.readAsBytes();
+      final imagePath = _userId != null ?
+            '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
+          : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
+      
+      try {
+        await supabase.storage.from('report_images').uploadBinary(
+              imagePath,
+              imageBytes,
+              fileOptions: FileOptions(
+                upsert: true,
+                contentType: 'image/$imageExtension',
+              ),
+            );
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Image successfully uploaded')));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to upload image: $e')));
+      }
+    }
+  }
+
+  void uploadText(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Text successfully uploaded')),
+    );
+    // Implement actual text upload logic as needed
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +197,7 @@ class _ReportImageState extends State<ReportImage> {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => _userId != null ? 
                                                                                        const ViewUploadsPage() 
                                                                                      : const FeedbackPage()));
+                                                                                    //display_report_image('reports/$imagePath') 
           },
           style: buttonStyle(),
           child: const Text("Next", style: TextStyle(color: Colors.black, fontSize: 16)),
@@ -184,47 +226,7 @@ class DividerWithText extends StatelessWidget {
   }
 }
 
-  Future<void> uploadImages(BuildContext context) async {
-    final ImagePicker picker = ImagePicker();
-    final List<XFile>? images = await picker.pickMultiImage();
-    final _userId = supabase.auth.currentSession!.user.id;
 
-    if (images == null || images.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('No images selected')));
-      return;
-    }
-    for (var image in images) {
-      final imageExtension = image.path.split('.').last.toLowerCase();
-      final imageBytes = await image.readAsBytes();
-      final imagePath = _userId != null ?
-            '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
-          : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
-      
-      try {
-        await supabase.storage.from('report_images').uploadBinary(
-              imagePath,
-              imageBytes,
-              fileOptions: FileOptions(
-                upsert: true,
-                contentType: 'image/$imageExtension',
-              ),
-            );
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Image successfully uploaded')));
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload image: $e')));
-      }
-    }
-  }
-
-  void uploadText(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Text successfully uploaded')),
-    );
-    // Implement actual text upload logic as needed
-  }
 
 
 
