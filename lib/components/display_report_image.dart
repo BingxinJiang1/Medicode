@@ -47,10 +47,15 @@ class displayReportImageState extends State<displayReportImage> {
       setState(() {
           responseText = response.text;
         });
+      print(responseText);
 
-      await supabase.from('files_converted').insert({'user_id': supabase.auth.currentSession!.user.id,
-                                     'image_url': widget.fileUrl,
-                                     'image_text': responseText});
+      await supabase.from('files_converted').insert({
+                                    'user_id': supabase.auth.currentSession!.user.id,
+                                    'image_url': widget.fileUrl,
+                                    'image_text': responseText});
+      ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Converted image into text'))
+      );
       
     } catch (error)  {
       print(error);
@@ -65,23 +70,24 @@ class displayReportImageState extends State<displayReportImage> {
     final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
 
     try {
-      final content = [Content.text('$responseText')];
+      final content = [Content.text('Please translate and explain any medical terminology or terms into short explainations: $responseText')];
       final response = await model.generateContent(content);
       var generatedText = response.text ?? "No result generated";
 
-      // Store result in state
-      setState(() {
-        apiResults = generatedText;
-      });
-      print(apiResults);
+      
 
       // Inform the user of success
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Text successfully uploaded and analyzed')),
       );
+      // Store result in state
+      setState(() {
+        apiResults = generatedText;
+      });
+      print(apiResults);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload text: $e')),
+        SnackBar(content: Text('Failed to upload text to gemini for analysis: $e')),
       );
     }
   }
@@ -93,16 +99,16 @@ class displayReportImageState extends State<displayReportImage> {
           onPressed: () {
               geminiImageToText();
               geminiAnalyze();
-              if (apiResults != null && apiResults!.isNotEmpty) {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('No results')),
-                );
-              }
+              // if (apiResults != null && apiResults!.isNotEmpty) {
+              //   Navigator.pushReplacement(
+              //       context,
+              //       MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
+              //   );
+              // } else {
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //   SnackBar(content: Text('No results for image analysis')),
+              //   );
+              // }
             },
           child: Row(
           children: [
