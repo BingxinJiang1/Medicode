@@ -127,6 +127,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
           // TextButton(onPressed: _signOut, child: const Text('Sign Out')),
           Divider(),
           Text('Number of uploaded images: ${len.toString()}'),
+          const Text('Click on Image to get analysis'),
           const SizedBox(height: 18),
           ListView.builder(
               physics: ScrollPhysics(),
