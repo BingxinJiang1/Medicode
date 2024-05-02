@@ -72,7 +72,7 @@ class IntroScreen extends StatelessWidget {
                       CrossAxisAlignment.start, // Aligns text to the left
                   children: [
                     Text(
-                      '✔ Upload PDFs of your radiologist\'s reports for instant rephrasing.',
+                      '✔ Upload images of your radiologist\'s reports for instant rephrasing.',
                       style: TextStyle(fontSize: 20, color: Colors.grey[700]),
                     ),
                     Text(
