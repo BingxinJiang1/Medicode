@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-//import 'package:gemini/constants.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
-
+import 'dart:io';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import '../components/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -23,29 +23,35 @@ class ReportImage extends StatefulWidget {
 
 class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
-  final Color mint = Color.fromARGB(255, 162, 228, 184); // Use mint color for buttons
+  final Color mint = Color.fromARGB(255, 162, 228, 184);
+  String? apiResults;  // Variable to store API results
 
   void uploadText(BuildContext context) async {
-    try {
-      // Call the simplify text API
-      var simplifiedText = await simplifyMedicalText(_textController.text);
-
-      // Inform the user of success before navigating
+    if (_textController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Text successfully uploaded')),
+          SnackBar(content: Text("Please enter the text and then upload!"))
       );
+      return;
+    }
 
-      // // Delay navigation to allow the user to read the SnackBar
-      // await Future.delayed(Duration(seconds: 2));
-      //
-      // // Navigate to FeedbackPage with the results
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => FeedbackPage(apiResults: simplifiedText),
-      //   ),
-      // );
-    } catch (e) {
+      final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+      final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey!);
+
+      try {
+        final content = [Content.text(_textController.text)];
+        final response = await model.generateContent(content);
+        var generatedText = response.text ?? "No result generated";
+
+        // Store result in state
+        setState(() {
+          apiResults = generatedText;
+        });
+
+        // Inform the user of success
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Text successfully uploaded and analyzed')),
+        );
+      } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload text: $e')),
       );
@@ -177,7 +183,16 @@ class _ReportImageState extends State<ReportImage> {
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FeedbackPage()));
+            if (apiResults != null && apiResults!.isNotEmpty) {
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('No results')),
+              );
+            }
           },
           style: buttonStyle(),
           child: const Text("Next", style: TextStyle(color: Colors.black, fontSize: 16)),
@@ -203,6 +218,20 @@ class DividerWithText extends StatelessWidget {
         Expanded(child: Divider()),
       ],
     );
+  }
+}
+
+class GenerativeAIManager {
+  GenerativeModel? model;
+
+  Future<void> initializeModel() async {
+    final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    if (apiKey == null) {
+      print('No \$API_KEY environment variable found.');
+      exit(1);
+    } else {
+      model = GenerativeModel(model: 'MODEL_NAME', apiKey: apiKey);
+    }
   }
 }
 
@@ -234,30 +263,8 @@ class DividerWithText extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to upload image: $e')));
       }
-
-      // try {
-      //   // Use an OCR library or service here to extract text from the image
-      //   final extractedText = await performOCR(image.path);
-      //   final simplifiedText = await simplifyMedicalText(extractedText);
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(content: Text('Text successfully simplified: $simplifiedText')),
-      //   );
-      // } catch (e) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(content: Text('Error processing image: $e')),
-      //   );
-      // }
     }
   }
-
-// Future<String> performOCR(String imagePath) async {
-//   final FirebaseVisionImage visionImage = FirebaseVisionImage.fromFilePath(imagePath);
-//   final TextRecognizer textRecognizer = FirebaseVision.instance.textRecognizer();
-//   final VisionText visionText = await textRecognizer.processImage(visionImage);
-//
-//   // Concatenate all text blocks into a single string
-//   return visionText.blocks.map((block) => block.text).join(' ');
-// }
 
 
 Future<void> simplifyMedicalText(String inputText) async {
