@@ -94,21 +94,19 @@ class displayReportImageState extends State<displayReportImage> {
   
     @override
     Widget build(BuildContext context) {
+      if (apiResults != null && apiResults!.isNotEmpty) {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
+        );
+      }
+      //else
       return MaterialButton(
           hoverColor: mint,
           onPressed: () {
               geminiImageToText();
               geminiAnalyze();
-              // if (apiResults != null && apiResults!.isNotEmpty) {
-              //   Navigator.pushReplacement(
-              //       context,
-              //       MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
-              //   );
-              // } else {
-              //   ScaffoldMessenger.of(context).showSnackBar(
-              //   SnackBar(content: Text('No results for image analysis')),
-              //   );
-              // }
+              
             },
           child: Row(
           children: [
