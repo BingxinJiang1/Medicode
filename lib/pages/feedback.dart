@@ -5,12 +5,12 @@ import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/upload_page.dart';
 
 class FeedbackPage extends StatelessWidget {
-  final String apiResults; // Variable to store API results
+  final String apiResults;
   const FeedbackPage({Key? key, this.apiResults = "No results available"}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final Color mint = Color.fromARGB(255, 162, 228, 184); // Mint color used for consistent theme
+    final Color mint = Color.fromARGB(255, 162, 228, 184);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -59,7 +59,7 @@ class FeedbackPage extends StatelessWidget {
               ),
               SizedBox(height: 20),
               Text(
-                apiResults, // Display the API results
+                apiResults,
                 style: TextStyle(fontSize: 16),
                 textAlign: TextAlign.justify,
               ),
