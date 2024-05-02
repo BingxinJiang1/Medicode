@@ -74,7 +74,7 @@ class _ReportImageState extends State<ReportImage> {
     for (var image in images) {
       final imageExtension = image.path.split('.').last.toLowerCase();
       final imageBytes = await image.readAsBytes();
-      final imagePath = _userId == null ?
+      final imagePath = _userId != null ?
             '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
           : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
       setState(() {

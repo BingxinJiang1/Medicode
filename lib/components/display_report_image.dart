@@ -24,7 +24,7 @@ class displayReportImageState extends State<displayReportImage> {
   String? responseText;
   String? apiResults;
 
-  void geminiImageToText() async {
+  Future<void> geminiImageToText() async {
     const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
     final model = GenerativeModel(model: 'gemini-pro-vision', apiKey: apiKey);
     const prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
@@ -66,15 +66,17 @@ class displayReportImageState extends State<displayReportImage> {
   }
     
   void geminiAnalyze() async {
-    final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    if (responseText == null) {
+      await geminiImageToText();
+    }
+
+    const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
     final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
 
     try {
       final content = [Content.text('Please translate and explain any medical terminology or terms into short explainations: $responseText')];
       final response = await model.generateContent(content);
       var generatedText = response.text ?? "No result generated";
-
-      
 
       // Inform the user of success
       ScaffoldMessenger.of(context).showSnackBar(
@@ -104,9 +106,7 @@ class displayReportImageState extends State<displayReportImage> {
       return MaterialButton(
           hoverColor: mint,
           onPressed: () {
-              geminiImageToText();
               geminiAnalyze();
-              
             },
           child: Row(
           children: [
