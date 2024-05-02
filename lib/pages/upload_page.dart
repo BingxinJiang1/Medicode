@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
+import 'package:gemini/components/display_report_image.dart';
 
 import '../components/constants.dart';
 
@@ -23,6 +24,7 @@ class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
   final Color mint = Color.fromARGB(255, 162, 228, 184); // Use mint color for buttons
   final _userId = supabase.auth.currentSession!.user.id;
+  String? _imageUrl = null;
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +134,8 @@ class _ReportImageState extends State<ReportImage> {
     );
   }
 
-  Widget navigationButtons(BuildContext context) {
+  Widget navigationButtons(BuildContext context) { 
+
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -150,7 +153,7 @@ class _ReportImageState extends State<ReportImage> {
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => _userId == null ? 
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => _userId != null ? 
                                                                                        const ViewUploadsPage() 
                                                                                      : const FeedbackPage()));
           },
@@ -194,9 +197,10 @@ class DividerWithText extends StatelessWidget {
     for (var image in images) {
       final imageExtension = image.path.split('.').last.toLowerCase();
       final imageBytes = await image.readAsBytes();
-      final imagePath = _userId == null ?
+      final imagePath = _userId != null ?
             '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
           : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
+      
       try {
         await supabase.storage.from('report_images').uploadBinary(
               imagePath,
