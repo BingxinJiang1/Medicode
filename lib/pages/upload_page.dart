@@ -27,6 +27,7 @@ class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
   final Color mint = Color.fromARGB(255, 162, 228, 184);
   String? apiResults;  // Variable to store API results
+  int UploadedFileCount = 0;
 
   void uploadText(BuildContext context) async {
     if (_textController.text.isEmpty) {
@@ -48,15 +49,54 @@ class _ReportImageState extends State<ReportImage> {
         setState(() {
           apiResults = generatedText;
         });
+        print(apiResults);
 
         // Inform the user of success
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Text successfully uploaded and analyzed')),
         );
       } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload text: $e')),
       );
+    }
+  }
+
+  Future<void> uploadImages(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile>? images = await picker.pickMultiImage();
+    final _userId = supabase.auth.currentSession!.user.id;
+
+    if (images == null || images.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('No images selected')));
+      return;
+    }
+    for (var image in images) {
+      final imageExtension = image.path.split('.').last.toLowerCase();
+      final imageBytes = await image.readAsBytes();
+      final imagePath = _userId == null ?
+            '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
+          : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
+      setState(() {
+        UploadedFileCount = images.length;
+      });
+      
+      try {
+        await supabase.storage.from('report_images').uploadBinary(
+              imagePath,
+              imageBytes,
+              fileOptions: FileOptions(
+                upsert: true,
+                contentType: 'image/$imageExtension',
+              ),
+            );
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Image successfully uploaded')));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to upload image: $e')));
+      }
     }
   }
 
@@ -149,7 +189,9 @@ class _ReportImageState extends State<ReportImage> {
                 style: buttonStyle(),
                 child: const Text('Upload Screenshots',
                     style: TextStyle(color: Colors.black, fontSize: 16)),
-              ),           
+              ), 
+              SizedBox(height: 20),
+              Text('Number of Uploaded Images: $UploadedFileCount'),
               SizedBox(height: 120),
               navigationButtons(context),
               const SizedBox(height: 20),
@@ -169,6 +211,7 @@ class _ReportImageState extends State<ReportImage> {
   }
 
   Widget navigationButtons(BuildContext context) {
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -194,8 +237,8 @@ class _ReportImageState extends State<ReportImage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('No results')),
               );
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ViewUploadsPage()));
             }
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ViewUploadsPage()));
           },
           style: buttonStyle(),
           child: const Text("Next", style: TextStyle(color: Colors.black, fontSize: 16)),
@@ -208,7 +251,7 @@ class _ReportImageState extends State<ReportImage> {
 class DividerWithText extends StatelessWidget {
   final String dividerText;
   const DividerWithText({Key? key, required this.dividerText}) : super(key: key);
-
+  
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -238,39 +281,7 @@ class GenerativeAIManager {
   }
 }
 
-  Future<void> uploadImages(BuildContext context) async {
-    final userId = supabase.auth.currentSession!.user.id;
-
-
-    final ImagePicker picker = ImagePicker();
-    final List<XFile>? images = await picker.pickMultiImage();
-    if (images == null || images.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('No images selected')));
-      return;
-    }
-    for (var image in images) {
-      final imageExtension = image.path.split('.').last.toLowerCase();
-      final imageBytes = await image.readAsBytes();
-      final imagePath =
-          '$userId/report_${DateTime.now().toIso8601String()}.$imageExtension';
-      try {
-        await supabase.storage.from('report_images').uploadBinary(
-              imagePath,
-              imageBytes,
-              fileOptions: FileOptions(
-                upsert: true,
-                contentType: 'image/$imageExtension',
-              ),
-            );
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Image successfully uploaded')));
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload image: $e')));
-      }
-    }
-  }
+  
 
 
 Future<void> simplifyMedicalText(String inputText) async {
