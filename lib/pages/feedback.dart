@@ -47,12 +47,14 @@ class FeedbackPage extends StatelessWidget {
         ],
         elevation: 0,
       ),
-      body: Center(
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              navigationButtons(context),
               Text(
                 'Here are the results of your data:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -64,7 +66,6 @@ class FeedbackPage extends StatelessWidget {
                 textAlign: TextAlign.justify,
               ),
               SizedBox(height: 120),
-              navigationButtons(context),
               const SizedBox(height: 20),
             ],
           ),
