@@ -4,6 +4,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/scheduler.dart';
 
 class displayReportImage extends StatefulWidget  {
   //fileUrl MUST CONTAIN: the file name and extension, AND ALL folders that should be in the path
@@ -97,10 +98,13 @@ class displayReportImageState extends State<displayReportImage> {
     @override
     Widget build(BuildContext context) {
       if (apiResults != null && apiResults!.isNotEmpty) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
         );
+      });
+
       }
       //else
       return MaterialButton(
