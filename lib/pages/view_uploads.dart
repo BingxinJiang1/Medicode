@@ -123,9 +123,10 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
           
           const SizedBox(height: 18),
           Text('You are logged in as user_id: $userId'),
-          // const Text('Not you? Sign out and log into a different account),
+          // const Text('Not you? Sign out and log into a different account'),
           // TextButton(onPressed: _signOut, child: const Text('Sign Out')),
-          Text(len.toString()),
+          Divider(),
+          Text('Number of uploaded images: ${len.toString()}'),
           const SizedBox(height: 18),
           ListView.builder(
               physics: ScrollPhysics(),
@@ -147,6 +148,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                   ),
                 );
               }),
+          const SizedBox(height: 50),
           navigationButtons(context)
         ],
       ),
