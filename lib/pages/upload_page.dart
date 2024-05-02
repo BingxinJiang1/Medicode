@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gemini/components/constants.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/view_uploads.dart';
@@ -9,8 +10,11 @@ import 'package:flutter/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
-
+import 'dart:io';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import '../components/constants.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ReportImage extends StatefulWidget {
   const ReportImage({super.key});
@@ -21,7 +25,40 @@ class ReportImage extends StatefulWidget {
 
 class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
-  final Color mint = Color.fromARGB(255, 162, 228, 184); // Use mint color for buttons
+  final Color mint = Color.fromARGB(255, 162, 228, 184);
+  String? apiResults;  // Variable to store API results
+
+  void uploadText(BuildContext context) async {
+    if (_textController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Please enter the text and then upload!"))
+      );
+      return;
+    }
+
+      final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+      final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey!);
+
+      try {
+        final content = [Content.text(_textController.text)];
+        final response = await model.generateContent(content);
+        var generatedText = response.text ?? "No result generated";
+
+        // Store result in state
+        setState(() {
+          apiResults = generatedText;
+        });
+
+        // Inform the user of success
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Text successfully uploaded and analyzed')),
+        );
+      } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload text: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +185,16 @@ class _ReportImageState extends State<ReportImage> {
         ),
         ElevatedButton(
           onPressed: () {
+            if (apiResults != null && apiResults!.isNotEmpty) {
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('No results')),
+              );
+            }
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ViewUploadsPage()));
           },
           style: buttonStyle(),
@@ -174,6 +221,20 @@ class DividerWithText extends StatelessWidget {
         Expanded(child: Divider())
       ],
     );
+  }
+}
+
+class GenerativeAIManager {
+  GenerativeModel? model;
+
+  Future<void> initializeModel() async {
+    final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    if (apiKey == null) {
+      print('No \$API_KEY environment variable found.');
+      exit(1);
+    } else {
+      model = GenerativeModel(model: 'MODEL_NAME', apiKey: apiKey);
+    }
   }
 }
 
@@ -211,12 +272,27 @@ class DividerWithText extends StatelessWidget {
     }
   }
 
-  void uploadText(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Text successfully uploaded')),
-    );
-    // Implement actual text upload logic as needed
+
+Future<void> simplifyMedicalText(String inputText) async {
+  var url = Uri.parse('https://api.geminiapi.com/v1/simplify'); // Replace with the actual URL
+  var response = await http.post(
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI'  // API key
+    },
+    body: jsonEncode({
+      'text': inputText,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var data = jsonDecode(response.body);
+    return data['simplifiedText']; // Assuming the response contains a field `simplifiedText`
+  } else {
+    throw Exception('Failed to simplify text: ${response.body}');
   }
+}
 
 
 
