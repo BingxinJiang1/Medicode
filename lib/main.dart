@@ -14,7 +14,6 @@ Future<void> main() async {
   // if (!kIsWeb) {
   //   await dotenv.load(fileName: ".env");
   // }
-
   await Supabase.initialize(
     url: Config.supabaseUrl,
     anonKey: Config.supabaseAnonKey,
