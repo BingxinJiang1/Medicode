@@ -9,9 +9,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (!kIsWeb) {
-    await dotenv.load(fileName: ".env");
-  }
+  await dotenv.load(fileName: ".env");
+  // Load .env file only if not running on the web
+  // if (!kIsWeb) {
+  //   await dotenv.load(fileName: ".env");
+  // }
 
   await Supabase.initialize(
     url: Config.supabaseUrl,
