@@ -35,7 +35,7 @@ class _ReportImageState extends State<ReportImage> {
       return;
     }
 
-    final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    final apiKey = dotenv.env['APIKEY']!;
     final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey!);
 
     try {
@@ -277,9 +277,9 @@ class DividerWithText extends StatelessWidget {
 
 class GenerativeAIManager {
   GenerativeModel? model;
+  final apiKey = dotenv.env['APIKEY']!;
 
   Future<void> initializeModel() async {
-    final apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
     if (apiKey == null) {
       print('No \$API_KEY environment variable found.');
       exit(1);
@@ -290,13 +290,14 @@ class GenerativeAIManager {
 }
 
 Future<void> simplifyMedicalText(String inputText) async {
+  final apiKey = dotenv.env['APIKEY']!;
   var url = Uri.parse(
       'https://api.geminiapi.com/v1/simplify'); // Replace with the actual URL
   var response = await http.post(
     url,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI' // API key
+      'Authorization': apiKey // API key
     },
     body: jsonEncode({
       'text': inputText,
