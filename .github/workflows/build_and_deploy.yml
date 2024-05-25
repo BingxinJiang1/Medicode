@@ -1,4 +1,7 @@
 # .github/workflows/build_and_deploy.yml
+
+#  Note: For sensitive information, we are using GitHub Secrets and dart-define approach in the CI/CD workflow.
+
 name: Build and Deploy
 
 on:
