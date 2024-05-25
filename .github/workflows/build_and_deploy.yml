@@ -6,8 +6,10 @@ name: Build and Deploy
 
 on:
   push:
+#    branches:
+#      - main
     branches:
-      - main
+      - test-github-build-deploy
 
 jobs:
   build:
@@ -33,3 +35,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
+          destination_dir: test-github-build-deploy
