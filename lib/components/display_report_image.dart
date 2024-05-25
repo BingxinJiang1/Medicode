@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gemini/components/constants.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:gemini/pages/feedback.dart';
@@ -26,7 +27,8 @@ class displayReportImageState extends State<displayReportImage> {
   String? apiResults;
 
   Future<void> geminiImageToText() async {
-    const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    // const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    final apiKey = dotenv.env['APIKEY']!;
     final model = GenerativeModel(model: 'gemini-pro-vision', apiKey: apiKey);
     const prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
 
@@ -71,7 +73,8 @@ class displayReportImageState extends State<displayReportImage> {
       await geminiImageToText();
     }
 
-    const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    // const apiKey = 'AIzaSyDc8aYbZAgj1ZH5zKUUgD7y7JfZNYpNkpI';
+    final apiKey = dotenv.env['APIKEY']!;
     final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
 
     try {
