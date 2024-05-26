@@ -1,5 +1,6 @@
 # Readable Patient Information Project
 
+<<<<<<< HEAD
 A new Flutter project for IOS and Android Apps.
 
 ## Getting Started
@@ -14,3 +15,6 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+Prototype demo: https://youtu.be/3Ifbl9T51a8?si=d_OdEXVeEsbDgL2m
+>>>>>>> fa642534c2da44fdef7cdd919c11f62432bf24e7
