@@ -18,8 +18,8 @@ class FeedbackPage extends StatelessWidget {
         backgroundColor: mint,
         title: Row(
           children: [
-            Image.asset('lib/images/medicode_logo.png', height: 40),
-            const SizedBox(width: 10),
+            Image.asset('lib/images/Medicode.png', height: 50),
+            const SizedBox(width: 20),
             Text('Feedbacks', style: TextStyle(color: Colors.black)),
           ],
         ),
