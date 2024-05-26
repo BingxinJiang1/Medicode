@@ -15,9 +15,9 @@ class IntroScreen extends StatelessWidget {
     backgroundColor: mint,
     title: Row(
       children: [
-        Image.asset('lib/images/medicode_logo.png', height: 40),
-        const SizedBox(width: 10),
-        Text('Medicode', style: TextStyle(color: Colors.black)),
+        Image.asset('lib/images/Medicode.png', height: 50),
+        const SizedBox(width: 20),
+        //Text('Medicode', style: TextStyle(color: Colors.black)),
       ],
       mainAxisAlignment: MainAxisAlignment.start, // Aligns title Row to the start of AppBar
     ),
@@ -53,7 +53,7 @@ class IntroScreen extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(100.0, 20.0, 100.0, 20),
-                child: Image.asset('lib/images/heart.jpeg'),
+                child: Image.asset('lib/images/heart.png'),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(28.0, 0, 28.0, 20.0),

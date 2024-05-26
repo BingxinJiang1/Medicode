@@ -6,8 +6,6 @@ import 'package:gemini/pages/intro_screen.dart';
 import 'package:gemini/components/constants.dart';
 import 'package:gemini/components/display_report_image.dart';
 
-
-
 class ViewUploadsPage extends StatefulWidget {
   const ViewUploadsPage({super.key});
 
@@ -19,26 +17,26 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   // final _usernameController = TextEditingController();
   // final _websiteController = TextEditingController();
   // String? _avatarUrl;
-  final userId = supabase.auth.currentSession == null ? null : supabase.auth.currentSession!.user.id;
+  final userId = supabase.auth.currentSession == null
+      ? null
+      : supabase.auth.currentSession!.user.id;
   final Color mint = Color.fromARGB(255, 162, 228, 184);
   int len = 0;
   var _files_list = null;
   var _loading = true;
 
-  /// get all files in storage bucket report_images 
+  /// get all files in storage bucket report_images
   /// CURRENTLY ASSUMES user is authenticated. There will be errors if user is not auth.
   Future<void> _getStorageFiles() async {
     setState(() {
       _loading = true;
     });
-      try {
-        final userFiles = await supabase
-          .storage
-          .from('report_images')
-          .list(path: userId);
-        len = userFiles.length;
-        _files_list = userFiles;
-      } catch (error) {
+    try {
+      final userFiles =
+          await supabase.storage.from('report_images').list(path: userId);
+      len = userFiles.length;
+      _files_list = userFiles;
+    } catch (error) {
       SnackBar(
         content: const Text('Unexpected error occurred'),
         backgroundColor: Theme.of(context).colorScheme.error,
@@ -50,19 +48,17 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
         });
       }
     }
-    }
+  }
 
   //gets PublicUrl string for a given user and a given fileUrl
   //fileUrl MUST CONTAIN: the file name and extension, AND ALL folders that should be in the path
   String _getPublicUrl(String fileUrl) {
-    // return '$userId/$fileUrl'; 
+    // return '$userId/$fileUrl';
     try {
-        final String publicUrl = supabase
-        .storage
-        .from('report_images')
-        .getPublicUrl(fileUrl);
-        print(publicUrl);
-        return publicUrl;
+      final String publicUrl =
+          supabase.storage.from('report_images').getPublicUrl(fileUrl);
+      print(publicUrl);
+      return publicUrl;
     } catch (error) {
       SnackBar(
         content: const Text('Unexpected error occurred'),
@@ -76,13 +72,11 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   void initState() {
     super.initState();
     _getStorageFiles();
-    
-    setState(() { 
-          _loading = false;
-        });
-  }
 
-  
+    setState(() {
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,8 +85,8 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
         backgroundColor: mint,
         title: Row(
           children: [
-            Image.asset('lib/images/medicode_logo.png', height: 40),
-            const SizedBox(width: 10),
+            Image.asset('lib/images/Medicode.png', height: 50),
+            const SizedBox(width: 20),
             Text(
               'Profile',
               style: TextStyle(color: Colors.black),
@@ -118,41 +112,39 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-        children: [
-          
-          const SizedBox(height: 18),
-          Text('You are logged in as user_id: $userId'),
-          // const Text('Not you? Sign out and log into a different account'),
-          // TextButton(onPressed: _signOut, child: const Text('Sign Out')),
-          Divider(),
-          Text('Number of uploaded images: ${len.toString()}'),
-          const Text('Click on Image to get analysis'),
-          const SizedBox(height: 18),
-          ListView.builder(
-              physics: ScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: len,
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  height: 60,
-                  child: Center(
-                    child: 
-                    displayReportImage(
-                      fileUrl: '$userId/${_files_list[index].name}',
-                      imageUrl: _getPublicUrl('$userId/${_files_list[index].name}')
-                      )
-                    // Text(
-                    //   '${_files_list[index].name}',
-                    //   style: const TextStyle(color: Colors.black, fontSize: 16),
-                    // ),
-                  ),
-                );
-              }),
-          const SizedBox(height: 50),
-          navigationButtons(context)
-        ],
-      ),
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+              children: [
+                const SizedBox(height: 18),
+                Text('You are logged in as user_id: $userId'),
+                // const Text('Not you? Sign out and log into a different account'),
+                // TextButton(onPressed: _signOut, child: const Text('Sign Out')),
+                Divider(),
+                Text('Number of uploaded images: ${len.toString()}'),
+                const Text('Click on Image to get analysis'),
+                const SizedBox(height: 18),
+                ListView.builder(
+                    physics: ScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: len,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Container(
+                        height: 60,
+                        child: Center(
+                            child: displayReportImage(
+                                fileUrl: '$userId/${_files_list[index].name}',
+                                imageUrl: _getPublicUrl(
+                                    '$userId/${_files_list[index].name}'))
+                            // Text(
+                            //   '${_files_list[index].name}',
+                            //   style: const TextStyle(color: Colors.black, fontSize: 16),
+                            // ),
+                            ),
+                      );
+                    }),
+                const SizedBox(height: 50),
+                navigationButtons(context)
+              ],
+            ),
     );
   }
 
@@ -173,18 +165,22 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             } else {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ReportImage()));
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (_) => const ReportImage()));
             }
           },
           style: buttonStyle(),
-          child: const Text("Back", style: TextStyle(color: Colors.black, fontSize: 16)),
+          child: const Text("Back",
+              style: TextStyle(color: Colors.black, fontSize: 16)),
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FeedbackPage()));
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const FeedbackPage()));
           },
           style: buttonStyle(),
-          child: const Text("Next", style: TextStyle(color: Colors.black, fontSize: 16)),
+          child: const Text("Next",
+              style: TextStyle(color: Colors.black, fontSize: 16)),
         ),
       ],
     );
