@@ -120,25 +120,29 @@ class displayReportImageState extends State<displayReportImage> {
       }
       //else
       return MaterialButton(
-          hoverColor: mint,
+          color: mint,
+          highlightColor: mint,
           onPressed: () {
               geminiAnalyze();
             },
           child: Row(
-          children: [
-            SizedBox(
-              width: 150,
-              height: 150,
+          children: [Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: SizedBox(
+              width: 100,
+              height: 100,
               child: 
               Image.network(
                       widget.imageUrl,
                       fit: BoxFit.cover,
                     )
-            ),
+            )),
             SizedBox(
               width: 150,
-              height: 150,
-              child: Text(widget.fileUrl)
+              height: 50,
+              child: Text(overflow: TextOverflow.fade,
+                          maxLines: 2,
+                          'image url link: ${widget.fileUrl.substring(supabase.auth.currentSession!.user.id.length)}')
             )
           ], 
         )
