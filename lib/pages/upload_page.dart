@@ -41,7 +41,7 @@ class _ReportImageState extends State<ReportImage> {
     try {
       final content = [
         Content.text(_textController.text +
-            "Simplify the patient report so that people with no medical background can understand it, and then provide 5 potential questions that the patient wants to ask the doctor.")
+            "Simplify the patient report so that a patient with no medical background can understand it, and then provide 5 potential questions that the patient wants to ask the doctor.")
       ];
       final response = await model.generateContent(content);
       var generatedText = response.text ?? "No result generated";
