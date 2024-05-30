@@ -32,37 +32,41 @@ class displayReportImageState extends State<displayReportImage> {
     const prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
 
     try {
-      print(widget.fileUrl);
-      final Uint8List imageBytes = await supabase
-        .storage
-        .from('report_images')
-        .download(widget.fileUrl);
+
       
-      final convertedText = [
-         Content.multi([
-          TextPart(prompt),
-          DataPart('image/png', imageBytes),
-      ])];
+      bool notExists = true;
+      if (notExists) {
+        print(widget.fileUrl);
+        final Uint8List imageBytes = await supabase
+          .storage
+          .from('report_images')
+          .download(widget.fileUrl);
+        
+        final convertedText = [
+            Content.multi([
+            TextPart(prompt),
+            DataPart('image/png', imageBytes),
+        ])];
 
-      final response = await model.generateContent(convertedText);
+        final response = await model.generateContent(convertedText);
 
-      setState(() {
-          responseText = response.text;
-        });
-      print(responseText);
+        setState(() {
+            responseText = response.text;
+          });
 
-      await supabase.from('files_converted').insert({
-                                    'user_id': supabase.auth.currentSession!.user.id,
-                                    'image_url': widget.fileUrl,
-                                    'image_text': responseText});
-      ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Converted image into text'))
-      );
+        await supabase.from('files_converted').insert({
+                                      'user_id': supabase.auth.currentSession!.user.id,
+                                      'image_url': widget.fileUrl,
+                                      'image_text': responseText});
+        ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Converted image into text'))
+        );
+      }
       
     } catch (error)  {
       print(error);
       ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to convert image into text: $error'))
+            SnackBar(content: Text('Failed to either retrieve previously uploaded text, or failed to convert image into text: $error'))
       );
     }
   }
@@ -134,3 +138,6 @@ class displayReportImageState extends State<displayReportImage> {
       );
     }
 }
+
+
+
