@@ -32,9 +32,12 @@ class displayReportImageState extends State<displayReportImage> {
     const prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
 
     try {
+      final data = await supabase
+        .from('files_converted')
+        .select('image_text')
+        .eq('image_url', widget.fileUrl);
 
-      
-      bool notExists = true;
+      bool notExists = data.isEmpty;
       if (notExists) {
         print(widget.fileUrl);
         final Uint8List imageBytes = await supabase
@@ -61,6 +64,10 @@ class displayReportImageState extends State<displayReportImage> {
         ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Converted image into text'))
         );
+      } else {
+        setState(() {
+            responseText = data.first['image_text'];
+          });
       }
       
     } catch (error)  {
