@@ -49,7 +49,6 @@ class LoginPageState extends State<LoginPage> {
         _passwordController.clear();
 
         _redirecting = true;
-        // Navigator.of(context).pushReplacementNamed('/home');
         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AccountPage()));
       }
     } on AuthException catch (error) {
@@ -64,10 +63,10 @@ class LoginPageState extends State<LoginPage> {
     const Color mint = Color.fromARGB(255, 162, 228, 184);
     return Scaffold(
       appBar: AppBar(
-            backgroundColor: mint,
-            title: Text('Login', style: GoogleFonts.notoSerif()),
-            centerTitle: true,
-          ),
+        backgroundColor: mint,
+        title: Text('Login', style: GoogleFonts.notoSerif()),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,

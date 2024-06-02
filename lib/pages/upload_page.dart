@@ -14,6 +14,7 @@ import 'dart:io';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:mime/mime.dart';
 
 class ReportImage extends StatefulWidget {
   const ReportImage({super.key});
@@ -74,11 +75,15 @@ class _ReportImageState extends State<ReportImage> {
       return;
     }
     for (var image in images) {
-      final imageExtension = image.path.split('.').last.toLowerCase();
       final imageBytes = await image.readAsBytes();
+      final mimeType = lookupMimeType(image.path, headerBytes: imageBytes);
+      final contentType = mimeType ?? 'application/octet-stream';
+      final imageExtension = mimeType != null ? mimeType.split('/').last : 'bin';
+
       final imagePath = _userId != null ?
             '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
           : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
+
       setState(() {
         UploadedFileCount = images.length;
       });
@@ -89,9 +94,16 @@ class _ReportImageState extends State<ReportImage> {
               imageBytes,
               fileOptions: FileOptions(
                 upsert: true,
-                contentType: 'image/$imageExtension',
+                contentType: contentType
               ),
             );
+
+        final response = await supabase.from('report_images_metadata').insert({
+          'path': imagePath,
+          'type': imageExtension,
+        }).select();
+        print('Response: $response');
+
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Image successfully uploaded')));
       } catch (e) {
