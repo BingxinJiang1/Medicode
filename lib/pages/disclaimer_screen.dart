@@ -15,13 +15,12 @@ class DisclaimerPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: mint,
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset('lib/images/Medicode.png', height: 50),
             const SizedBox(width: 20),
             //Text('Medicode', style: TextStyle(color: Colors.black)),
-          ],
-          mainAxisAlignment: MainAxisAlignment
-              .start, // Aligns title Row to the start of AppBar
+          ], // Aligns title Row to the start of AppBar
         ),
         actions: <Widget>[
           TextButton(
@@ -38,7 +37,7 @@ class DisclaimerPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18), // Rounded edges
               ),
             ),
-            child: Text(
+            child: const Text(
               'Log In',
               style: TextStyle(
                 fontWeight: FontWeight.bold, // Make the text bold
@@ -98,7 +97,7 @@ class DisclaimerPage extends StatelessWidget {
                         Navigator.pop(context);
                       } else {
                         Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (_) => IntroScreen()));
+                            MaterialPageRoute(builder: (_) => const IntroScreen()));
                       }
                     },
                     style: ElevatedButton.styleFrom(

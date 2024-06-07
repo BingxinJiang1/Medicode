@@ -1,112 +1,125 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:gemini/components/constants.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/view_uploads.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/widgets.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gemini/pages/login.dart';
-import 'dart:io';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:mime/mime.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:gemini/components/constants.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:flutter/widgets.dart';
+// import 'package:image_cropper/image_cropper.dart';
+// import 'dart:io';
+// import 'package:google_generative_ai/google_generative_ai.dart';
+// import 'package:http/http.dart' as http;
+// import 'dart:convert';
 
 class ReportImage extends StatefulWidget {
   const ReportImage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ReportImageState createState() => _ReportImageState();
 }
 
 class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
-  final Color mint = Color.fromARGB(255, 162, 228, 184);
-  String? apiResults; // Variable to store API results
-  int UploadedFileCount = 0;
+  final Color mint = const Color.fromARGB(255, 162, 228, 184);
+  String? apiResults;
+  int uploadedFileCount = 0;
 
   void uploadText(BuildContext context) async {
-    if (_textController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Please enter the text and then upload!")));
-      return;
-    }
+    // if (_textController.text.isEmpty) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(content: Text("Please enter the text and then upload!")));
+    //   return;
+    // }
 
-    final apiKey = dotenv.env['APIKEY']!;
-    final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey!);
+    // final apiKey = dotenv.env['APIKEY']!;
+    // final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey!);
 
-    try {
-      final content = [
-        Content.text(_textController.text +
-            "Simplify the patient report so that a patient with no medical background can understand it, and then provide 5 potential questions that the patient wants to ask the doctor.")
-      ];
-      final response = await model.generateContent(content);
-      var generatedText = response.text ?? "No result generated";
+    // try {
+    //   final content = [
+    //     Content.text(_textController.text +
+    //         "Simplify the patient report so that a patient with no medical background can understand it, and then provide 5 potential questions that the patient wants to ask the doctor.")
+    //   ];
+    //   final response = await model.generateContent(content);
+    //   var generatedText = response.text ?? "No result generated";
 
-      // Store result in state
-      setState(() {
-        apiResults = generatedText;
-      });
-      print(apiResults);
+    //   // Store result in state
+    //   setState(() {
+    //     apiResults = generatedText;
+    //   });
+    //   print(apiResults);
 
-      // Inform the user of success
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Text successfully uploaded and analyzed')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload text: $e')),
-      );
-    }
+    //   // Inform the user of success
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(content: Text('Text successfully uploaded and analyzed')),
+    //   );
+    // } catch (e) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(content: Text('Failed to upload text: $e')),
+    //   );
+    // }
   }
 
   Future<void> uploadImages(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
-    final List<XFile>? images = await picker.pickMultiImage();
-    final _userId = supabase.auth.currentSession == null ? null : supabase.auth.currentSession!.user.id;
+    final List<XFile> images = await picker.pickMultiImage();
+    final userId = Supabase.instance.client.auth.currentUser?.id;
 
-    if (images == null || images.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('No images selected')));
+    if (userId == null) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('You need to be logged in to upload files')));
       return;
     }
+
+    if (images.isEmpty) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('No images selected')));
+      return;
+    }
+
     for (var image in images) {
       final imageBytes = await image.readAsBytes();
       final mimeType = lookupMimeType(image.path, headerBytes: imageBytes);
       final contentType = mimeType ?? 'application/octet-stream';
-      final imageExtension = mimeType != null ? mimeType.split('/').last : 'bin';
-
-      final imagePath = _userId != null ?
-            '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
-          : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
-
-      setState(() {
-        UploadedFileCount = images.length;
-      });
+      final imageExtension =
+          mimeType != null ? mimeType.split('/').last : 'bin';
+      final imagePath =
+          '$userId/report_${DateTime.now().toIso8601String()}.$imageExtension';
 
       try {
-        await supabase.storage.from('report_images').uploadBinary(
+        await Supabase.instance.client.storage
+            .from('report_images')
+            .uploadBinary(
               imagePath,
               imageBytes,
               fileOptions: FileOptions(
                 upsert: true,
-                contentType: contentType
+                contentType: contentType,
               ),
             );
 
-        final response = await supabase.from('report_images_metadata').insert({
+        await Supabase.instance.client.from('report_images_metadata').insert({
+          'user_id': userId,
           'path': imagePath,
-          'type': imageExtension,
-        }).select();
-        print('Response: $response');
+          'type': contentType,
+        });
 
+        setState(() {
+          uploadedFileCount += 1;
+        });
+
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Image successfully uploaded')));
+            const SnackBar(content: Text('Image successfully uploaded')));
       } catch (e) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to upload image: $e')));
       }
@@ -120,13 +133,12 @@ class _ReportImageState extends State<ReportImage> {
       appBar: AppBar(
         backgroundColor: mint,
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset('lib/images/Medicode.png', height: 50),
             const SizedBox(width: 20),
             //Text('Medicode', style: TextStyle(color: Colors.black)),
-          ],
-          mainAxisAlignment: MainAxisAlignment
-              .start, // Aligns title Row to the start of AppBar
+          ], // Aligns title Row to the start of AppBar
         ),
         actions: <Widget>[
           TextButton(
@@ -143,7 +155,7 @@ class _ReportImageState extends State<ReportImage> {
                 borderRadius: BorderRadius.circular(18), // Rounded edges
               ),
             ),
-            child: Text(
+            child: const Text(
               'Log In',
               style: TextStyle(
                 fontWeight: FontWeight.bold, // Make the text bold
@@ -167,11 +179,11 @@ class _ReportImageState extends State<ReportImage> {
                 padding: const EdgeInsets.symmetric(
                     horizontal:
                         20.0), // Reduced horizontal padding for wider TextField
-                child: Container(
+                child: SizedBox(
                   height: 100,
                   child: TextField(
                     controller: _textController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       border:
                           OutlineInputBorder(), // Rectangle appearance with a border
                       labelText:
@@ -180,32 +192,32 @@ class _ReportImageState extends State<ReportImage> {
                       contentPadding: EdgeInsets.symmetric(
                           vertical: 20.0, horizontal: 20.0), // Padding inside
                     ),
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                     keyboardType: TextInputType.multiline,
                     minLines: 10,
                     maxLines: null, // Allows unlimited lines
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => uploadText(context),
                 style: buttonStyle(),
                 child: const Text('Upload Text',
                     style: TextStyle(color: Colors.black, fontSize: 16)),
               ),
-              SizedBox(height: 20),
-              DividerWithText(dividerText: "OR"),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
+              const DividerWithText(dividerText: "OR"),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => uploadImages(context),
                 style: buttonStyle(),
                 child: const Text('Upload Screenshots',
                     style: TextStyle(color: Colors.black, fontSize: 16)),
               ),
-              SizedBox(height: 20),
-              Text('Number of Uploaded Images: $UploadedFileCount'),
-              SizedBox(height: 120),
+              const SizedBox(height: 20),
+              Text('Number of Uploaded Images: $uploadedFileCount'),
+              const SizedBox(height: 120),
               navigationButtons(context),
               const SizedBox(height: 20),
             ],
@@ -250,7 +262,7 @@ class _ReportImageState extends State<ReportImage> {
                           FeedbackPage(apiResults: apiResults!)));
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('No results')),
+                const SnackBar(content: Text('No results')),
               );
               Navigator.pushReplacement(
                   context,
@@ -269,61 +281,60 @@ class _ReportImageState extends State<ReportImage> {
 
 class DividerWithText extends StatelessWidget {
   final String dividerText;
-  const DividerWithText({Key? key, required this.dividerText})
-      : super(key: key);
+  const DividerWithText({super.key, required this.dividerText});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        Expanded(child: Divider()),
+        const Expanded(child: Divider()),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Text(dividerText),
         ),
-        Expanded(child: Divider())
+        const Expanded(child: Divider())
       ],
     );
   }
 }
 
-class GenerativeAIManager {
-  GenerativeModel? model;
-  final apiKey = dotenv.env['APIKEY']!;
+// class GenerativeAIManager {
+//   GenerativeModel? model;
+//   final apiKey = dotenv.env['APIKEY']!;
 
-  Future<void> initializeModel() async {
-    if (apiKey == null) {
-      print('No \$API_KEY environment variable found.');
-      exit(1);
-    } else {
-      model = GenerativeModel(model: 'MODEL_NAME', apiKey: apiKey);
-    }
-  }
-}
+//   Future<void> initializeModel() async {
+//     if (apiKey == null) {
+//       print('No \$API_KEY environment variable found.');
+//       exit(1);
+//     } else {
+//       model = GenerativeModel(model: 'MODEL_NAME', apiKey: apiKey);
+//     }
+//   }
+// }
 
-Future<void> simplifyMedicalText(String inputText) async {
-  final apiKey = dotenv.env['APIKEY']!;
-  var url = Uri.parse(
-      'https://api.geminiapi.com/v1/simplify'); // Replace with the actual URL
-  var response = await http.post(
-    url,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': apiKey // API key
-    },
-    body: jsonEncode({
-      'text': inputText,
-    }),
-  );
+// Future<void> simplifyMedicalText(String inputText) async {
+//   final apiKey = dotenv.env['APIKEY']!;
+//   var url = Uri.parse(
+//       'https://api.geminiapi.com/v1/simplify'); // Replace with the actual URL
+//   var response = await http.post(
+//     url,
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Authorization': apiKey // API key
+//     },
+//     body: jsonEncode({
+//       'text': inputText,
+//     }),
+//   );
 
-  if (response.statusCode == 200) {
-    var data = jsonDecode(response.body);
-    return data[
-        'simplifiedText']; // Assuming the response contains a field `simplifiedText`
-  } else {
-    throw Exception('Failed to simplify text: ${response.body}');
-  }
-}
+//   if (response.statusCode == 200) {
+//     var data = jsonDecode(response.body);
+//     return data[
+//         'simplifiedText']; // Assuming the response contains a field `simplifiedText`
+//   } else {
+//     throw Exception('Failed to simplify text: ${response.body}');
+//   }
+// }
 
 
 
