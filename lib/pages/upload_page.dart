@@ -18,9 +18,48 @@ class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
   int uploadedFileCount = 0;
 
+  Future<void> _showTitleDialog(Function(String) onTitleEntered) async {
+    final TextEditingController _titleController = TextEditingController();
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must enter a title
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Title'),
+          content: TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(hintText: 'Title'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Submit'),
+              onPressed: () {
+                final title = _titleController.text.trim();
+                if (title.isNotEmpty) {
+                  onTitleEntered(title);
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Title cannot be empty')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> uploadImages(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
-    final List<XFile> images = await picker.pickMultiImage();
+    final List<XFile>? images = await picker.pickMultiImage();
     final userId = Supabase.instance.client.auth.currentUser?.id;
 
     if (userId == null) {
@@ -29,49 +68,54 @@ class _ReportImageState extends State<ReportImage> {
       return;
     }
 
-    if (images.isEmpty) {
+    if (images == null || images.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('No images selected')));
       return;
     }
 
     for (var image in images) {
-      final imageBytes = await image.readAsBytes();
-      final mimeType = lookupMimeType(image.path, headerBytes: imageBytes);
-      final contentType = mimeType ?? 'application/octet-stream';
-      final imageExtension =
-          mimeType != null ? mimeType.split('/').last : 'bin';
-      final imagePath =
-          '$userId/report_${DateTime.now().toIso8601String()}.$imageExtension';
+      await _showTitleDialog((title) async {
+        final imageBytes = await image.readAsBytes();
+        final mimeType = lookupMimeType(image.path, headerBytes: imageBytes);
+        final contentType = mimeType ?? 'application/octet-stream';
+        final imageExtension =
+            mimeType != null ? mimeType.split('/').last : 'bin';
+        final imagePath =
+            '$userId/report_${DateTime.now().toIso8601String()}.$imageExtension';
 
-      try {
-        await Supabase.instance.client.storage
-            .from('report_images')
-            .uploadBinary(
-              imagePath,
-              imageBytes,
-              fileOptions: FileOptions(
-                upsert: true,
-                contentType: contentType,
-              ),
-            );
+        try {
+          await Supabase.instance.client.storage
+              .from('report_images')
+              .uploadBinary(
+                imagePath,
+                imageBytes,
+                fileOptions: FileOptions(
+                  upsert: true,
+                  contentType: contentType,
+                ),
+              );
 
-        await Supabase.instance.client.from('report_images_metadata').insert({
-          'user_id': userId,
-          'path': imagePath,
-          'type': contentType,
-        });
+          await Supabase.instance.client
+              .from('report_image_text_metadata')
+              .insert({
+            'user_id': userId,
+            'path': imagePath,
+            'type': contentType,
+            'title': title,
+          });
 
-        setState(() {
-          uploadedFileCount += 1;
-        });
+          setState(() {
+            uploadedFileCount += 1;
+          });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image successfully uploaded')));
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload image: $e')));
-      }
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image successfully uploaded')));
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to upload image: $e')));
+        }
+      });
     }
   }
 
@@ -90,38 +134,43 @@ class _ReportImageState extends State<ReportImage> {
       return;
     }
 
-    final textContent = _textController.text;
-    final textBytes = textContent.codeUnits;
-    final textPath = '$userId/report_${DateTime.now().toIso8601String()}.txt';
+    await _showTitleDialog((title) async {
+      final textContent = _textController.text;
+      final textBytes = textContent.codeUnits;
+      final textPath = '$userId/report_${DateTime.now().toIso8601String()}.txt';
 
-    try {
-      await Supabase.instance.client.storage
-          .from('report_images')
-          .uploadBinary(
-            textPath,
-            Uint8List.fromList(textBytes),
-            fileOptions: FileOptions(
-              upsert: true,
-              contentType: 'text/plain',
-            ),
-          );
+      try {
+        await Supabase.instance.client.storage
+            .from('report_images')
+            .uploadBinary(
+              textPath,
+              Uint8List.fromList(textBytes),
+              fileOptions: FileOptions(
+                upsert: true,
+                contentType: 'text/plain',
+              ),
+            );
 
-      await Supabase.instance.client.from('report_images_metadata').insert({
-        'user_id': userId,
-        'path': textPath,
-        'type': 'text/plain',
-      });
+        await Supabase.instance.client
+            .from('report_image_text_metadata')
+            .insert({
+          'user_id': userId,
+          'path': textPath,
+          'type': 'text/plain',
+          'title': title,
+        });
 
-      setState(() {
-        uploadedFileCount += 1;
-      });
+        setState(() {
+          uploadedFileCount += 1;
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Text successfully uploaded')));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload text: $e')));
-    }
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Text successfully uploaded')));
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to upload text: $e')));
+      }
+    });
   }
 
   @override
@@ -200,7 +249,7 @@ class _ReportImageState extends State<ReportImage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => uploadText(context),
                 style: buttonStyle(),
@@ -208,7 +257,9 @@ class _ReportImageState extends State<ReportImage> {
                     style: TextStyle(color: Colors.black, fontSize: 16)),
               ),
               const SizedBox(height: 20),
-              Divider(thickness: 2, color: Colors.grey[300]), // Adding a dividing line
+              Divider(
+                  thickness: 2,
+                  color: Colors.grey[300]), // Adding a dividing line
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => uploadImages(context),
@@ -218,7 +269,7 @@ class _ReportImageState extends State<ReportImage> {
               ),
               const SizedBox(height: 20),
               Text('Number of Uploaded Files: $uploadedFileCount'),
-              const SizedBox(height: 80),
+              const SizedBox(height: 70),
               navigationButtons(context),
               const SizedBox(height: 20),
             ],
