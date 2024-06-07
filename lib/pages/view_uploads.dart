@@ -1,68 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gemini/pages/upload_page.dart';
-import 'package:gemini/pages/feedback.dart';
-import 'package:gemini/pages/intro_screen.dart';
-import 'package:gemini/components/constants.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/components/display_report_image.dart';
+import 'package:gemini/pages/intro_screen.dart';
 
 class ViewUploadsPage extends StatefulWidget {
   const ViewUploadsPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ViewUploadsPageState createState() => _ViewUploadsPageState();
 }
 
 class _ViewUploadsPageState extends State<ViewUploadsPage> {
-  // final _usernameController = TextEditingController();
-  // final _websiteController = TextEditingController();
-  // String? _avatarUrl;
-  final userId = supabase.auth.currentSession == null
-      ? null
-      : supabase.auth.currentSession!.user.id;
-  final Color mint = Color.fromARGB(255, 162, 228, 184);
+  final userId = Supabase.instance.client.auth.currentUser?.id;
+  final Color mint = const Color.fromARGB(255, 162, 228, 184);
   int len = 0;
-  var _files_list = null;
+  var _filesList = [];
   var _loading = true;
+  String? _selectedFile;
 
-  /// get all files in storage bucket report_images
-  /// CURRENTLY ASSUMES user is authenticated. There will be errors if user is not auth.
   Future<void> _getStorageFiles() async {
     setState(() {
       _loading = true;
     });
     try {
-      final userFiles =
-          await supabase.storage.from('report_images').list(path: userId);
-      len = userFiles.length;
-      _files_list = userFiles;
+      final userFiles = await Supabase.instance.client.storage
+          .from('report_images')
+          .list(path: userId);
+      setState(() {
+        len = userFiles.length;
+        _filesList = userFiles;
+      });
     } catch (error) {
-      SnackBar(
-        content: const Text('Unexpected error occurred'),
-        backgroundColor: Theme.of(context).colorScheme.error,
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unexpected error occurred')),
       );
     } finally {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-        });
-      }
+      setState(() {
+        _loading = false;
+      });
     }
   }
 
-  //gets PublicUrl string for a given user and a given fileUrl
-  //fileUrl MUST CONTAIN: the file name and extension, AND ALL folders that should be in the path
   String _getPublicUrl(String fileUrl) {
-    // return '$userId/$fileUrl';
     try {
-      final String publicUrl =
-          supabase.storage.from('report_images').getPublicUrl(fileUrl);
-      print(publicUrl);
+      final String publicUrl = Supabase.instance.client.storage
+          .from('report_images')
+          .getPublicUrl(fileUrl);
       return publicUrl;
     } catch (error) {
-      SnackBar(
-        content: const Text('Unexpected error occurred'),
-        backgroundColor: Theme.of(context).colorScheme.error,
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unexpected error occurred')),
       );
       return 'No file image found.';
     }
@@ -72,10 +62,6 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   void initState() {
     super.initState();
     _getStorageFiles();
-
-    setState(() {
-      _loading = false;
-    });
   }
 
   @override
@@ -84,15 +70,15 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
       appBar: AppBar(
         backgroundColor: mint,
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset('lib/images/Medicode.png', height: 50),
             const SizedBox(width: 20),
-            Text(
+            const Text(
               'Profile',
               style: TextStyle(color: Colors.black),
             ),
           ],
-          mainAxisAlignment: MainAxisAlignment.start,
         ),
         actions: <Widget>[
           IconButton(
@@ -102,7 +88,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                 MaterialPageRoute(builder: (context) => const IntroScreen()),
               );
             },
-            icon: Icon(Icons.logout), // Use the logout icon
+            icon: const Icon(Icons.logout), // Use the logout icon
             color: Colors.black,
           ),
           const SizedBox(width: 10),
@@ -116,33 +102,30 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
               children: [
                 const SizedBox(height: 18),
                 Text('You are logged in as user_id: $userId'),
-                // const Text('Not you? Sign out and log into a different account'),
-                // TextButton(onPressed: _signOut, child: const Text('Sign Out')),
-                Divider(),
+                const Divider(),
                 Text('Number of uploaded images: ${len.toString()}'),
-                const Text('Click on Image to get analysis'),
+                const Text('Click on Image to select it for analysis'),
                 const SizedBox(height: 18),
                 ListView.builder(
-                    physics: ScrollPhysics(),
+                    physics: const ScrollPhysics(),
                     shrinkWrap: true,
                     itemCount: len,
                     itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        height: 60,
-                        child: Center(
-                            child: displayReportImage(
-                                fileUrl: '$userId/${_files_list[index].name}',
-                                imageUrl: _getPublicUrl(
-                                    '$userId/${_files_list[index].name}'))
-                            // Text(
-                            //   '${_files_list[index].name}',
-                            //   style: const TextStyle(color: Colors.black, fontSize: 16),
-                            // ),
-                            ),
+                      final file = _filesList[index];
+                      return ListTile(
+                        title: displayReportImage(
+                            fileUrl: '$userId/${file.name}',
+                            imageUrl: _getPublicUrl('$userId/${file.name}')),
+                        selected: _selectedFile == file.name,
+                        onTap: () {
+                          setState(() {
+                            _selectedFile = file.name;
+                          });
+                        },
                       );
                     }),
                 const SizedBox(height: 50),
-                navigationButtons(context)
+                navigationButtons(context),
               ],
             ),
     );
@@ -157,30 +140,40 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   }
 
   Widget navigationButtons(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Column(
       children: [
-        ElevatedButton(
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (_) => const ReportImage()));
-            }
-          },
-          style: buttonStyle(),
-          child: const Text("Back",
-              style: TextStyle(color: Colors.black, fontSize: 16)),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => const FeedbackPage()));
-          },
-          style: buttonStyle(),
-          child: const Text("Next",
-              style: TextStyle(color: Colors.black, fontSize: 16)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => const ReportImage()));
+                }
+              },
+              style: buttonStyle(),
+              child: const Text("Back",
+                  style: TextStyle(color: Colors.black, fontSize: 16)),
+            ),
+            ElevatedButton(
+              onPressed: _selectedFile == null
+                  ? null
+                  : () {
+                      // No need to navigate to FeedbackPage from here.
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text('Please wait for analysis to complete.')),
+                      );
+                    },
+              style: buttonStyle(),
+              child: const Text("Analyze",
+                  style: TextStyle(color: Colors.black, fontSize: 16)),
+            ),
+          ],
         ),
       ],
     );

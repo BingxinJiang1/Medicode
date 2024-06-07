@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:gemini/pages/login.dart';
-import 'package:gemini/pages/disclaimer_screen.dart';
-import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/upload_page.dart';
 
 class FeedbackPage extends StatelessWidget {
   final String apiResults;
-  const FeedbackPage({Key? key, this.apiResults = "No results available"}) : super(key: key);
+  const FeedbackPage({super.key, this.apiResults = "No results available"});
 
   @override
   Widget build(BuildContext context) {
-    final Color mint = Color.fromARGB(255, 162, 228, 184);
+    const Color mint = Color.fromARGB(255, 162, 228, 184);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -20,7 +18,7 @@ class FeedbackPage extends StatelessWidget {
           children: [
             Image.asset('lib/images/Medicode.png', height: 50),
             const SizedBox(width: 20),
-            Text('Feedbacks', style: TextStyle(color: Colors.black)),
+            const Text('Feedbacks', style: TextStyle(color: Colors.black)),
           ],
         ),
         actions: <Widget>[
@@ -55,17 +53,17 @@ class FeedbackPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               navigationButtons(context),
-              Text(
+              const Text(
                 'Here are the results of your data:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 apiResults,
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
                 textAlign: TextAlign.justify,
               ),
-              SizedBox(height: 120),
+              const SizedBox(height: 120),
               const SizedBox(height: 20),
             ],
           ),
@@ -102,7 +100,7 @@ class FeedbackPage extends StatelessWidget {
 
   ButtonStyle buttonStyle() {
     return ElevatedButton.styleFrom(
-      backgroundColor: Color.fromARGB(255, 162, 228, 184),
+      backgroundColor: const Color.fromARGB(255, 162, 228, 184),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     );
