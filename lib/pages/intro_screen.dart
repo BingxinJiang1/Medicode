@@ -1,54 +1,97 @@
 import 'package:flutter/material.dart';
+import 'package:gemini/pages/account_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:gemini/pages/login.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class IntroScreen extends StatelessWidget {
+class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
 
   @override
+  _IntroScreenState createState() => _IntroScreenState();
+}
+
+class _IntroScreenState extends State<IntroScreen> {
+  final Color mint = const Color.fromARGB(255, 162, 228, 184);
+  String? avatarUrl; // Variable to store avatar URL
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null) {
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .single();
+      setState(() {
+        avatarUrl = response['avatar_url'];
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const Color mint = Color.fromARGB(255, 162, 228, 184);
+    final user = Supabase.instance.client.auth.currentUser;
     return Scaffold(
-  backgroundColor: Colors.grey[50],
-  appBar: AppBar(
-    backgroundColor: mint,
-    title: Row(
-      children: [
-        Image.asset('lib/images/Medicode.png', height: 50),
-        const SizedBox(width: 20),
-        //Text('Medicode', style: TextStyle(color: Colors.black)),
-      ],
-      mainAxisAlignment: MainAxisAlignment.start, // Aligns title Row to the start of AppBar
-    ),
-    actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.black, backgroundColor: Colors.white, // Button background color
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18), // Rounded edges
-              ),
-            ),
-            child: Text(
-              'Log In',
-              style: TextStyle(
-                fontWeight: FontWeight.bold, // Make the text bold
-              ),
-            ),
-          ),
-          const SizedBox(width: 10), // Spacing after button
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: mint,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Image.asset('lib/images/Medicode.png', height: 50),
+            const SizedBox(width: 20),
+          ],
+        ),
+        actions: <Widget>[
+          user == null
+              ? TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: const Text(
+                    'Log In',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AccountPage()),
+                    );
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      avatarUrl ?? 'https://via.placeholder.com/150',
+                    ),
+                  ),
+                ),
+          const SizedBox(width: 10),
         ],
         elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          // Use SingleChildScrollView to avoid overflow and allow scrolling
           child: Column(
             children: [
               Padding(
@@ -92,7 +135,7 @@ class IntroScreen extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => DisclaimerPage()),
+                    MaterialPageRoute(builder: (context) => const DisclaimerPage()),
                   ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
