@@ -110,25 +110,31 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 28.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '• Medicode is for informational purposes only – not a substitute for professional medical advice, diagnosis, or treatment.',
-                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
+                child: Card(
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildBulletPoint(
+                          'Medicode is for informational purposes only – not a substitute for professional medical advice, diagnosis, or treatment.',
+                        ),
+                        _buildBulletPoint(
+                          'Always consult your physician or a qualified health provider with any questions regarding a medical condition.',
+                        ),
+                        _buildBulletPoint(
+                          'Do not disregard professional medical advice or delay seeking it based on information from this app.',
+                        ),
+                      ],
                     ),
-                    Text(
-                      '• Always consult your physician or a qualified health provider with any questions regarding a medical condition.',
-                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
-                    ),
-                    Text(
-                      '• Do not disregard professional medical advice or delay seeking it based on information from this app.',
-                      style: TextStyle(fontSize: 20, color: Colors.grey[700]),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 20), // Adjust the space before the buttons as needed
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -174,10 +180,38 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20), // Adjust the space at the bottom of the screen as needed
+              const SizedBox(height: 20),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBulletPoint(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '• ',
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.black,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
