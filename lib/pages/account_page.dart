@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/components/constants.dart';
 import '../components/avatar.dart';
@@ -182,7 +183,7 @@ class _AccountPageState extends State<AccountPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const IntroScreen()),
+                MaterialPageRoute(builder: (context) => const DisclaimerPage()),
               );
             },
             icon: Icon(Icons.logout), // Use the logout icon
