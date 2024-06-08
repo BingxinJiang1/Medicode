@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/view_uploads.dart';
+import 'package:gemini/pages/disclaimer_screen.dart'; // Import the DisclaimerPage
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/pages/login.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:typed_data';
 
 class ReportImage extends StatefulWidget {
@@ -20,6 +19,7 @@ class ReportImage extends StatefulWidget {
 
 class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   final Color mint = const Color.fromARGB(255, 162, 228, 184);
   String? apiResults; // Variable to store API results
   int uploadedFileCount = 0;
@@ -84,7 +84,6 @@ class _ReportImageState extends State<ReportImage> {
       final textPath = '$userId/report_${DateTime.now().toIso8601String()}.txt';
 
       try {
-        // Save text file to Supabase storage
         await Supabase.instance.client.storage
             .from('report_images')
             .uploadBinary(
@@ -96,7 +95,6 @@ class _ReportImageState extends State<ReportImage> {
               ),
             );
 
-        // Save metadata to Supabase
         await Supabase.instance.client
             .from('report_image_text_metadata')
             .insert({
@@ -110,7 +108,6 @@ class _ReportImageState extends State<ReportImage> {
           uploadedFileCount += 1;
         });
 
-        // Simplify medical text using Gemini API
         final apiKey = dotenv.env['APIKEY']!;
         final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
 
@@ -121,14 +118,13 @@ class _ReportImageState extends State<ReportImage> {
         final response = await model.generateContent(content);
         var generatedText = response.text ?? "No result generated";
 
-        // Store result in state
         setState(() {
           apiResults = generatedText;
         });
 
-        // Inform the user of success
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Text successfully uploaded and analyzed')),
+          const SnackBar(
+              content: Text('Text successfully uploaded and analyzed')),
         );
 
         Navigator.pushReplacement(
@@ -256,7 +252,8 @@ class _ReportImageState extends State<ReportImage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   'Upload your report as an image or text for processing and analysis.',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -266,6 +263,7 @@ class _ReportImageState extends State<ReportImage> {
                 child: SizedBox(
                   height: 100,
                   child: TextField(
+                    focusNode: _focusNode,
                     controller: _textController,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -277,26 +275,48 @@ class _ReportImageState extends State<ReportImage> {
                     style: const TextStyle(fontSize: 16),
                     keyboardType: TextInputType.multiline,
                     maxLines: null,
+                    onTap: () {
+                      // Request focus to bring up the keyboard
+                      _focusNode.requestFocus();
+                    },
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => uploadText(context),
-                style: buttonStyle(),
-                child: const Text('Upload and Analyze Text',
-                    style: TextStyle(color: Colors.black, fontSize: 16)),
+              GestureDetector(
+                onTap: () => uploadText(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: mint,
+                  ),
+                  child: const Text(
+                    'Upload and Analyze Text',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               Divider(
                   thickness: 2,
-                  color: Colors.grey[300]), // Adding a dividing line
+                  color: Colors.grey[300]),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => uploadImages(context),
-                style: buttonStyle(),
-                child: const Text('Upload Screenshots',
-                    style: TextStyle(color: Colors.black, fontSize: 16)),
+              GestureDetector(
+                onTap: () => uploadImages(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: mint,
+                  ),
+                  child: const Text(
+                    'Upload Screenshots',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               Text('Number of Uploaded Image Reports: $uploadedFileCount'),
@@ -310,28 +330,49 @@ class _ReportImageState extends State<ReportImage> {
     );
   }
 
-  ButtonStyle buttonStyle() {
-    return ElevatedButton.styleFrom(
-      backgroundColor: mint,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-    );
-  }
-
   Widget navigationButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        ElevatedButton(
-          onPressed: () {
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DisclaimerPage()));
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: mint,
+            ),
+            child: const Text(
+              'Back',
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ),
+        ),
+        GestureDetector(
+          onTap: () {
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const ViewUploadsPage()));
           },
-          style: buttonStyle(),
-          child: const Text("Saved Image Reports",
-              style: TextStyle(color: Colors.black, fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: mint,
+            ),
+            child: const Text(
+              'Saved Image Reports',
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ),
         ),
       ],
     );
