@@ -10,15 +10,18 @@ import 'package:flutter/scheduler.dart';
 class displayReportImage extends StatefulWidget {
   final String fileUrl;
   final String imageUrl;
+  final String title;
+  final DateTime createdAt;
 
   const displayReportImage({
     required this.fileUrl,
     required this.imageUrl,
+    required this.title,
+    required this.createdAt,
     super.key,
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   _displayReportImageState createState() => _displayReportImageState();
 }
 
@@ -127,26 +130,37 @@ class _displayReportImageState extends State<displayReportImage> {
             geminiAnalyze();
           },
         child: Row(
-        children: [Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: SizedBox(
-            width: 100,
-            height: 100,
-            child: 
-            Image.network(
-                    widget.imageUrl,
-                    fit: BoxFit.cover,
-                  )
-          )),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: SizedBox(
+              width: 100,
+              height: 100,
+              child: Image.network(
+                      widget.imageUrl,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+          ),
           SizedBox(
             width: 150,
-            height: 50,
-            child: Text(overflow: TextOverflow.fade,
-                        maxLines: 2,
-                        'image url link: ${widget.fileUrl.substring(Supabase.instance.client.auth.currentUser!.id.length)}')
-          )
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Created: ${widget.createdAt.toLocal()}',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
         ], 
-      )
+      ),
     );
   }
 }

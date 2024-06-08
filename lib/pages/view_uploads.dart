@@ -8,16 +8,15 @@ class ViewUploadsPage extends StatefulWidget {
   const ViewUploadsPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _ViewUploadsPageState createState() => _ViewUploadsPageState();
 }
 
 class _ViewUploadsPageState extends State<ViewUploadsPage> {
-  final userId = Supabase.instance.client.auth.currentUser?.id;
+  final String? userId = Supabase.instance.client.auth.currentUser?.id;
   final Color mint = const Color.fromARGB(255, 162, 228, 184);
   int len = 0;
-  var _filesList = [];
-  var _loading = true;
+  List<Map<String, dynamic>> _filesList = [];
+  bool _loading = true;
   String? _selectedFile;
 
   Future<void> _getStorageFiles() async {
@@ -25,13 +24,17 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
       _loading = true;
     });
     try {
-      final userFiles = await Supabase.instance.client.storage
-          .from('report_images')
-          .list(path: userId);
-      setState(() {
-        len = userFiles.length;
-        _filesList = userFiles;
-      });
+      final localUserId = userId;  // Create a local copy of userId
+      if (localUserId != null) {
+        final response = await Supabase.instance.client
+            .from('report_image_text_metadata')
+            .select()
+            .eq('user_id', localUserId);
+        setState(() {
+          _filesList = List<Map<String, dynamic>>.from(response);
+          len = _filesList.length;
+        });
+      }
     } catch (error) {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
@@ -103,8 +106,8 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                 const SizedBox(height: 18),
                 Text('You are logged in as user_id: $userId'),
                 const Divider(),
-                Text('Number of uploaded images: ${len.toString()}'),
-                const Text('Click on Image to select it for analysis'),
+                Text('Number of uploaded files: ${len.toString()}'),
+                const Text('Click on an item to select it for analysis'),
                 const SizedBox(height: 18),
                 ListView.builder(
                     physics: const ScrollPhysics(),
@@ -114,12 +117,14 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                       final file = _filesList[index];
                       return ListTile(
                         title: displayReportImage(
-                            fileUrl: '$userId/${file.name}',
-                            imageUrl: _getPublicUrl('$userId/${file.name}')),
-                        selected: _selectedFile == file.name,
+                            fileUrl: file['path'],
+                            imageUrl: _getPublicUrl(file['path']),
+                            title: file['title'],
+                            createdAt: DateTime.parse(file['created_at'])),
+                        selected: _selectedFile == file['path'],
                         onTap: () {
                           setState(() {
-                            _selectedFile = file.name;
+                            _selectedFile = file['path'];
                           });
                         },
                       );
@@ -162,7 +167,6 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
               onPressed: _selectedFile == null
                   ? null
                   : () {
-                      // No need to navigate to FeedbackPage from here.
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content:
