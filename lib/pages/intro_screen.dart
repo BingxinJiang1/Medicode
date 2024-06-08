@@ -1,44 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:gemini/pages/account_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:gemini/pages/login.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:gemini/pages/disclaimer_screen.dart';
 
-class IntroScreen extends StatefulWidget {
+class IntroScreen extends StatelessWidget {
   const IntroScreen({super.key});
 
-  @override
-  _IntroScreenState createState() => _IntroScreenState();
-}
-
-class _IntroScreenState extends State<IntroScreen> {
-  final Color mint = const Color.fromARGB(255, 162, 228, 184);
-  String? avatarUrl; // Variable to store avatar URL
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserProfile();
+  Future<void> _signInAnonymously(BuildContext context) async {
+    try {
+      final response = await Supabase.instance.client.auth.signInAnonymously();
+      if (response.user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DisclaimerPage()),
+        );
+      } else {
+        _showMessage(context, 'Anonymous sign-in failed.');
+      }
+    } catch (error) {
+      _showMessage(context, 'Error: $error');
+    }
   }
 
-  Future<void> _fetchUserProfile() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId != null) {
-      final response = await Supabase.instance.client
-          .from('profiles')
-          .select()
-          .eq('id', userId)
-          .single();
-      setState(() {
-        avatarUrl = response['avatar_url'];
-      });
-    }
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
+    const Color mint = Color.fromARGB(255, 162, 228, 184);
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -50,44 +43,6 @@ class _IntroScreenState extends State<IntroScreen> {
             const SizedBox(width: 20),
           ],
         ),
-        actions: <Widget>[
-          user == null
-              ? TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  child: const Text(
-                    'Log In',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                )
-              : GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AccountPage()),
-                    );
-                  },
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      avatarUrl ?? 'https://via.placeholder.com/150',
-                    ),
-                  ),
-                ),
-          const SizedBox(width: 10),
-        ],
         elevation: 0,
       ),
       body: SafeArea(
@@ -108,11 +63,9 @@ class _IntroScreenState extends State<IntroScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 28.0), // Horizontal padding
+                padding: const EdgeInsets.symmetric(horizontal: 28.0),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start, // Aligns text to the left
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '✔ Upload images of your radiologist\'s reports for instant rephrasing.',
@@ -129,32 +82,50 @@ class _IntroScreenState extends State<IntroScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20), // Space before the button
+              const SizedBox(height: 20),
               Center(
-                // Center the button horizontally
-                child: GestureDetector(
-                  onTap: () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const DisclaimerPage()),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12), // Adjust padding as needed
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: mint,
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: mint,
+                        ),
+                        child: const Text(
+                          'Log In',
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                      ),
                     ),
-                    child: const Text(
-                      'Get Started',
-                      style: TextStyle(color: Colors.black, fontSize: 16),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: () => _signInAnonymously(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.grey[300],
+                        ),
+                        child: const Text(
+                          'Continue as Guest',
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(
-                  height:
-                      30), // To ensure some space at the bottom of the screen
+              const SizedBox(height: 30),
             ],
           ),
         ),
