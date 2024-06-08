@@ -84,7 +84,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
             Image.asset('lib/images/Medicode.png', height: 50),
             const SizedBox(width: 20),
             const Text(
-              'Profile',
+              'My Uploads',
               style: TextStyle(color: Colors.black),
             ),
           ],
@@ -97,7 +97,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                 MaterialPageRoute(builder: (context) => const IntroScreen()),
               );
             },
-            icon: const Icon(Icons.logout), // Use the logout icon
+            icon: const Icon(Icons.logout),
             color: Colors.black,
           ),
           const SizedBox(width: 10),
