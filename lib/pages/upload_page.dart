@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gemini/pages/account_page.dart';
 import 'package:gemini/pages/feedback.dart';
+import 'package:gemini/pages/intro_screen.dart';
 import 'package:gemini/pages/view_uploads.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -25,6 +26,7 @@ class _ReportImageState extends State<ReportImage> {
   String? apiResults; // Variable to store API results
   int uploadedFileCount = 0;
   String? avatarUrl; // Variable to store avatar URL
+  bool isAnonymousUser = false;
 
   @override
   void initState() {
@@ -33,17 +35,52 @@ class _ReportImageState extends State<ReportImage> {
   }
 
   Future<void> _fetchUserProfile() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId != null) {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      isAnonymousUser = user.isAnonymous;
       final response = await Supabase.instance.client
           .from('profiles')
           .select()
-          .eq('id', userId)
+          .eq('id', user.id)
           .single();
       setState(() {
         avatarUrl = response['avatar_url'];
       });
     }
+  }
+
+  Future<void> _showSignOutReminderDialog() async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Guest Mode'),
+          content: const Text(
+            'You are currently browsing as a guest. Would you like to sign out or keep browsing?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Keep Browsing'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Sign Out'),
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const IntroScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _showTitleDialog(Function(String) onTitleEntered) async {
@@ -261,10 +298,14 @@ class _ReportImageState extends State<ReportImage> {
                 )
               : GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AccountPage()),
-                    );
+                    if (isAnonymousUser) {
+                      _showSignOutReminderDialog();
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AccountPage()),
+                      );
+                    }
                   },
                   child: CircleAvatar(
                     backgroundImage: NetworkImage(
@@ -313,7 +354,6 @@ class _ReportImageState extends State<ReportImage> {
                     keyboardType: TextInputType.multiline,
                     maxLines: null,
                     onTap: () {
-                      // Request focus to bring up the keyboard
                       _focusNode.requestFocus();
                     },
                   ),
