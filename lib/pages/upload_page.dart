@@ -123,13 +123,8 @@ class _ReportImageState extends State<ReportImage> {
   }
 
   Future<void> uploadText(BuildContext context) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('You need to be logged in to upload files')));
-      return;
-    }
+    final user = Supabase.instance.client.auth.currentUser;
+    final userId = user?.id;
 
     if (_textController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -141,11 +136,10 @@ class _ReportImageState extends State<ReportImage> {
       final textContent = _textController.text;
       final textBytes = textContent.codeUnits;
       final textPath = '$userId/report_${DateTime.now().toIso8601String()}.txt';
+      final bucketName = isAnonymousUser ? 'for_guest_image_text' : 'report_images';
 
       try {
-        await Supabase.instance.client.storage
-            .from('report_images')
-            .uploadBinary(
+        await Supabase.instance.client.storage.from(bucketName).uploadBinary(
               textPath,
               Uint8List.fromList(textBytes),
               fileOptions: FileOptions(
@@ -200,13 +194,8 @@ class _ReportImageState extends State<ReportImage> {
   Future<void> uploadImages(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('You need to be logged in to upload files')));
-      return;
-    }
+    final user = Supabase.instance.client.auth.currentUser;
+    final userId = user?.id;
 
     if (images == null || images.isEmpty) {
       ScaffoldMessenger.of(context)
@@ -223,11 +212,11 @@ class _ReportImageState extends State<ReportImage> {
             mimeType != null ? mimeType.split('/').last : 'bin';
         final imagePath =
             '$userId/report_${DateTime.now().toIso8601String()}.$imageExtension';
+        final bucketName =
+            isAnonymousUser ? 'for_guest_image_text' : 'report_images';
 
         try {
-          await Supabase.instance.client.storage
-              .from('report_images')
-              .uploadBinary(
+          await Supabase.instance.client.storage.from(bucketName).uploadBinary(
                 imagePath,
                 imageBytes,
                 fileOptions: FileOptions(

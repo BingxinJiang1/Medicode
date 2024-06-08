@@ -57,9 +57,10 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   }
 
   String _getPublicUrl(String fileUrl) {
+    final bucketName = isAnonymousUser ? 'for_guest_image_text' : 'report_images';
     try {
       final String publicUrl = Supabase.instance.client.storage
-          .from('report_images')
+          .from(bucketName)
           .getPublicUrl(fileUrl);
       return publicUrl;
     } catch (error) {
@@ -204,7 +205,9 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                             fileUrl: file['path'],
                             imageUrl: _getPublicUrl(file['path']),
                             title: file['title'],
-                            createdAt: DateTime.parse(file['created_at'])),
+                            createdAt: DateTime.parse(file['created_at']),
+                            isAnonymousUser: isAnonymousUser
+                        ),
                         selected: _selectedFile == file['path'],
                         onTap: () {
                           setState(() {

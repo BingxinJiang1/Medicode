@@ -11,12 +11,14 @@ class DisplayReportImage extends StatefulWidget {
   final String imageUrl;
   final String title;
   final DateTime createdAt;
+  final bool isAnonymousUser;
 
   const DisplayReportImage({
     required this.fileUrl,
     required this.imageUrl,
     required this.title,
     required this.createdAt,
+    required this.isAnonymousUser,
     super.key,
   });
 
@@ -44,7 +46,7 @@ class _DisplayReportImageState extends State<DisplayReportImage> {
       bool notExists = data.isEmpty;
       if (notExists) {
         final Uint8List imageBytes = await Supabase.instance.client.storage
-          .from('report_images')
+          .from(widget.isAnonymousUser ? 'for_guest_image_text' : 'report_images')
           .download(widget.fileUrl);
 
         final convertedText = [
