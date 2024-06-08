@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gemini/pages/account_page.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/view_uploads.dart';
-import 'package:gemini/pages/disclaimer_screen.dart'; // Import the DisclaimerPage
+import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
@@ -268,7 +268,7 @@ class _ReportImageState extends State<ReportImage> {
                   },
                   child: CircleAvatar(
                     backgroundImage: NetworkImage(
-                      avatarUrl ?? 'https://via.placeholder.com/150', // Replace with user's profile image URL if available
+                      avatarUrl ?? 'https://via.placeholder.com/150',
                     ),
                   ),
                 ),
