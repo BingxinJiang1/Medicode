@@ -268,7 +268,7 @@ class _ReportImageState extends State<ReportImage> {
                     style: TextStyle(color: Colors.black, fontSize: 16)),
               ),
               const SizedBox(height: 20),
-              Text('Number of Uploaded Files: $uploadedFileCount'),
+              Text('Number of Uploaded Image Reports: $uploadedFileCount'),
               const SizedBox(height: 70),
               navigationButtons(context),
               const SizedBox(height: 20),
@@ -299,7 +299,7 @@ class _ReportImageState extends State<ReportImage> {
                     builder: (context) => const ViewUploadsPage()));
           },
           style: buttonStyle(),
-          child: const Text("Next",
+          child: const Text("Saved Image Reports",
               style: TextStyle(color: Colors.black, fontSize: 16)),
         ),
       ],

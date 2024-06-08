@@ -24,19 +24,25 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
       _loading = true;
     });
     try {
-      final localUserId = userId;  // Create a local copy of userId
+      final localUserId = userId; // Create a local copy of userId
       if (localUserId != null) {
         final response = await Supabase.instance.client
             .from('report_image_text_metadata')
             .select()
             .eq('user_id', localUserId);
+
+        final files = List<Map<String, dynamic>>.from(response);
+
+        // Filter files to only include images
+        final imageFiles =
+            files.where((file) => file['type'].startsWith('image/')).toList();
+
         setState(() {
-          _filesList = List<Map<String, dynamic>>.from(response);
+          _filesList = imageFiles;
           len = _filesList.length;
         });
       }
     } catch (error) {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unexpected error occurred')),
       );
@@ -107,7 +113,24 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                 Text('You are logged in as user_id: $userId'),
                 const Divider(),
                 Text('Number of uploaded files: ${len.toString()}'),
-                const Text('Click on an item to select it for analysis'),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade100,
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: Colors.amber, width: 2),
+                  ),
+                  child: const Text(
+                    'Click on an item to select it for analysis',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
                 const SizedBox(height: 18),
                 ListView.builder(
                     physics: const ScrollPhysics(),
@@ -116,7 +139,7 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                     itemBuilder: (BuildContext context, int index) {
                       final file = _filesList[index];
                       return ListTile(
-                        title: displayReportImage(
+                        title: DisplayReportImage(
                             fileUrl: file['path'],
                             imageUrl: _getPublicUrl(file['path']),
                             title: file['title'],
@@ -161,20 +184,6 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
               },
               style: buttonStyle(),
               child: const Text("Back",
-                  style: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-            ElevatedButton(
-              onPressed: _selectedFile == null
-                  ? null
-                  : () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content:
-                                Text('Please wait for analysis to complete.')),
-                      );
-                    },
-              style: buttonStyle(),
-              child: const Text("Analyze",
                   style: TextStyle(color: Colors.black, fontSize: 16)),
             ),
           ],

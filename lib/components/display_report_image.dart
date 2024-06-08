@@ -6,14 +6,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
 import 'package:flutter/scheduler.dart';
 
-// ignore: camel_case_types
-class displayReportImage extends StatefulWidget {
+class DisplayReportImage extends StatefulWidget {
   final String fileUrl;
   final String imageUrl;
   final String title;
   final DateTime createdAt;
 
-  const displayReportImage({
+  const DisplayReportImage({
     required this.fileUrl,
     required this.imageUrl,
     required this.title,
@@ -22,11 +21,11 @@ class displayReportImage extends StatefulWidget {
   });
 
   @override
-  _displayReportImageState createState() => _displayReportImageState();
+  // ignore: library_private_types_in_public_api
+  _DisplayReportImageState createState() => _DisplayReportImageState();
 }
 
-// ignore: camel_case_types
-class _displayReportImageState extends State<displayReportImage> {
+class _DisplayReportImageState extends State<DisplayReportImage> {
   final Color mint = const Color.fromARGB(255, 162, 228, 184);
   String? responseText;
   String? apiResults;
