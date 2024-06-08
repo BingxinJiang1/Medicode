@@ -3,6 +3,7 @@ import 'package:gemini/pages/account_page.dart';
 import 'package:gemini/pages/login.dart';
 import 'package:gemini/pages/upload_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:gemini/pages/intro_screen.dart';
 
 class FeedbackPage extends StatefulWidget {
   final String apiResults;
@@ -15,6 +16,7 @@ class FeedbackPage extends StatefulWidget {
 class _FeedbackPageState extends State<FeedbackPage> {
   final Color mint = const Color.fromARGB(255, 162, 228, 184);
   String? avatarUrl;
+  bool isAnonymousUser = false;
 
   @override
   void initState() {
@@ -23,17 +25,52 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
 
   Future<void> _fetchUserProfile() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId != null) {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      isAnonymousUser = user.isAnonymous;
       final response = await Supabase.instance.client
           .from('profiles')
           .select('avatar_url')
-          .eq('id', userId)
+          .eq('id', user.id)
           .single();
       setState(() {
         avatarUrl = response['avatar_url'];
       });
     }
+  }
+
+  Future<void> _showSignOutReminderDialog() async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Guest Mode'),
+          content: const Text(
+            'You are currently browsing as a guest. Would you like to sign out or keep browsing?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Keep Browsing'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Sign Out'),
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const IntroScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -74,10 +111,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 )
               : GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AccountPage()), 
-                    );
+                    if (isAnonymousUser) {
+                      _showSignOutReminderDialog();
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AccountPage()), 
+                      );
+                    }
                   },
                   child: CircleAvatar(
                     backgroundImage: NetworkImage(
