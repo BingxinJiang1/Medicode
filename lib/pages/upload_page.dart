@@ -1,10 +1,15 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:gemini/pages/login.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/view_uploads.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:gemini/pages/login.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:typed_data';
 
 class ReportImage extends StatefulWidget {
   const ReportImage({super.key});
@@ -14,8 +19,9 @@ class ReportImage extends StatefulWidget {
 }
 
 class _ReportImageState extends State<ReportImage> {
-  final Color mint = const Color.fromARGB(255, 162, 228, 184);
   final TextEditingController _textController = TextEditingController();
+  final Color mint = const Color.fromARGB(255, 162, 228, 184);
+  String? apiResults; // Variable to store API results
   int uploadedFileCount = 0;
 
   Future<void> _showTitleDialog(Function(String) onTitleEntered) async {
@@ -55,6 +61,85 @@ class _ReportImageState extends State<ReportImage> {
         );
       },
     );
+  }
+
+  Future<void> uploadText(BuildContext context) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('You need to be logged in to upload files')));
+      return;
+    }
+
+    if (_textController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter some text')));
+      return;
+    }
+
+    await _showTitleDialog((title) async {
+      final textContent = _textController.text;
+      final textBytes = textContent.codeUnits;
+      final textPath = '$userId/report_${DateTime.now().toIso8601String()}.txt';
+
+      try {
+        // Save text file to Supabase storage
+        await Supabase.instance.client.storage
+            .from('report_images')
+            .uploadBinary(
+              textPath,
+              Uint8List.fromList(textBytes),
+              fileOptions: FileOptions(
+                upsert: true,
+                contentType: 'text/plain',
+              ),
+            );
+
+        // Save metadata to Supabase
+        await Supabase.instance.client
+            .from('report_image_text_metadata')
+            .insert({
+          'user_id': userId,
+          'path': textPath,
+          'type': 'text/plain',
+          'title': title,
+        });
+
+        setState(() {
+          uploadedFileCount += 1;
+        });
+
+        // Simplify medical text using Gemini API
+        final apiKey = dotenv.env['APIKEY']!;
+        final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
+
+        final content = [
+          Content.text(textContent +
+              " Simplify the patient report so that a patient with no medical background can understand it, and then provide 5 potential questions that the patient wants to ask the doctor.")
+        ];
+        final response = await model.generateContent(content);
+        var generatedText = response.text ?? "No result generated";
+
+        // Store result in state
+        setState(() {
+          apiResults = generatedText;
+        });
+
+        // Inform the user of success
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Text successfully uploaded and analyzed')),
+        );
+
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => FeedbackPage(apiResults: generatedText)));
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to upload text: $e')));
+      }
+    });
   }
 
   Future<void> uploadImages(BuildContext context) async {
@@ -119,60 +204,6 @@ class _ReportImageState extends State<ReportImage> {
     }
   }
 
-  Future<void> uploadText(BuildContext context) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('You need to be logged in to upload files')));
-      return;
-    }
-
-    if (_textController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter some text')));
-      return;
-    }
-
-    await _showTitleDialog((title) async {
-      final textContent = _textController.text;
-      final textBytes = textContent.codeUnits;
-      final textPath = '$userId/report_${DateTime.now().toIso8601String()}.txt';
-
-      try {
-        await Supabase.instance.client.storage
-            .from('report_images')
-            .uploadBinary(
-              textPath,
-              Uint8List.fromList(textBytes),
-              fileOptions: FileOptions(
-                upsert: true,
-                contentType: 'text/plain',
-              ),
-            );
-
-        await Supabase.instance.client
-            .from('report_image_text_metadata')
-            .insert({
-          'user_id': userId,
-          'path': textPath,
-          'type': 'text/plain',
-          'title': title,
-        });
-
-        setState(() {
-          uploadedFileCount += 1;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Text successfully uploaded')));
-      } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to upload text: $e')));
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -225,7 +256,7 @@ class _ReportImageState extends State<ReportImage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   'Upload your report as an image or text for processing and analysis.',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -253,7 +284,7 @@ class _ReportImageState extends State<ReportImage> {
               ElevatedButton(
                 onPressed: () => uploadText(context),
                 style: buttonStyle(),
-                child: const Text('Upload Text',
+                child: const Text('Upload and Analyze Text',
                     style: TextStyle(color: Colors.black, fontSize: 16)),
               ),
               const SizedBox(height: 20),
