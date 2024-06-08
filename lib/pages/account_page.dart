@@ -94,28 +94,25 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> _signOut() async {
-    try {
-      await supabase.auth.signOut();
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const IntroScreen()),
-      );
-    } on AuthException catch (error) {
-      SnackBar(
-        content: Text(error.message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      );
-    } catch (error) {
-      SnackBar(
-        content: const Text('Unexpected error occurred'),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      );
-    } finally {
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
-      }
-    }
+  try {
+    await supabase.auth.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const IntroScreen()),
+    );
+  } on AuthException catch (error) {
+    SnackBar(
+      content: Text(error.message),
+      backgroundColor: Theme.of(context).colorScheme.error,
+    );
+  } catch (error) {
+    SnackBar(
+      content: const Text('Unexpected error occurred'),
+      backgroundColor: Theme.of(context).colorScheme.error,
+    );
   }
+}
+
 
   /// Called when image has been uploaded to Supabase storage from within Avatar widget
   Future<void> _onUpload(String imageUrl) async {
