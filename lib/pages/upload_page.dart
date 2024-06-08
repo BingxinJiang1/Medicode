@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gemini/pages/account_page.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/view_uploads.dart';
 import 'package:gemini/pages/disclaimer_screen.dart'; // Import the DisclaimerPage
@@ -23,6 +24,27 @@ class _ReportImageState extends State<ReportImage> {
   final Color mint = const Color.fromARGB(255, 162, 228, 184);
   String? apiResults; // Variable to store API results
   int uploadedFileCount = 0;
+  String? avatarUrl; // Variable to store avatar URL
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null) {
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .single();
+      setState(() {
+        avatarUrl = response['avatar_url'];
+      });
+    }
+  }
 
   Future<void> _showTitleDialog(Function(String) onTitleEntered) async {
     final TextEditingController _titleController = TextEditingController();
@@ -202,6 +224,7 @@ class _ReportImageState extends State<ReportImage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -214,27 +237,41 @@ class _ReportImageState extends State<ReportImage> {
           ],
         ),
         actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-            ),
-            child: const Text(
-              'Log In',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+          user == null
+              ? TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: const Text(
+                    'Log In',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AccountPage()),
+                    );
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      avatarUrl ?? 'https://via.placeholder.com/150', // Replace with user's profile image URL if available
+                    ),
+                  ),
+                ),
           const SizedBox(width: 10),
         ],
         elevation: 0,
