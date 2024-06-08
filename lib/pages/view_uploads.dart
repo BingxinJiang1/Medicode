@@ -3,6 +3,7 @@ import 'package:gemini/pages/upload_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/components/display_report_image.dart';
 import 'package:gemini/pages/intro_screen.dart';
+import 'package:gemini/pages/account_page.dart';
 
 class ViewUploadsPage extends StatefulWidget {
   const ViewUploadsPage({super.key});
@@ -18,6 +19,8 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   List<Map<String, dynamic>> _filesList = [];
   bool _loading = true;
   String? _selectedFile;
+  String? avatarUrl;
+  bool isAnonymousUser = false;
 
   Future<void> _getStorageFiles() async {
     setState(() {
@@ -70,7 +73,57 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
   @override
   void initState() {
     super.initState();
+    _fetchUserProfile();
     _getStorageFiles();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      isAnonymousUser = user.isAnonymous;
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .single();
+      setState(() {
+        avatarUrl = response['avatar_url'];
+      });
+    }
+  }
+
+  Future<void> _showSignOutReminderDialog() async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Guest Mode'),
+          content: const Text(
+            'You are currently browsing as a guest. Would you like to sign out or keep browsing?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Keep Browsing'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Sign Out'),
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const IntroScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -90,15 +143,23 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
           ],
         ),
         actions: <Widget>[
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const IntroScreen()),
-              );
+          GestureDetector(
+            onTap: () {
+              final user = Supabase.instance.client.auth.currentUser;
+              if (isAnonymousUser) {
+                _showSignOutReminderDialog();
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AccountPage()),
+                );
+              }
             },
-            icon: const Icon(Icons.logout),
-            color: Colors.black,
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(
+                avatarUrl ?? 'https://via.placeholder.com/150',
+              ),
+            ),
           ),
           const SizedBox(width: 10),
         ],
