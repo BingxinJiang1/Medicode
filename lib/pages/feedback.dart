@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gemini/pages/account_page.dart';
 import 'package:gemini/pages/login.dart';
-import 'package:gemini/pages/upload_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/pages/intro_screen.dart';
 
@@ -161,20 +160,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
+        
         ElevatedButton(
           onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ReportImage()));
-            }
-          },
-          style: buttonStyle(),
-          child: const Text("Back", style: TextStyle(color: Colors.black, fontSize: 16)),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const FeedbackPage()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const FeedbackPage()));
           },
           style: buttonStyle(),
           child: const Text("Next", style: TextStyle(color: Colors.black, fontSize: 16)),
