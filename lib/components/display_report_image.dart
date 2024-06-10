@@ -1,28 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:gemini/components/constants.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:gemini/pages/feedback.dart';
-import 'dart:io';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
 import 'package:flutter/scheduler.dart';
 
-class displayReportImage extends StatefulWidget  {
-  //fileUrl MUST CONTAIN: the file name and extension, AND ALL folders that should be in the path
+class DisplayReportImage extends StatefulWidget {
   final String fileUrl;
   final String imageUrl;
+  final String title;
+  final DateTime createdAt;
+  final bool isAnonymousUser;
 
-  //constructor with required parameters
-  const displayReportImage({
+  const DisplayReportImage({
     required this.fileUrl,
-    required this.imageUrl});
+    required this.imageUrl,
+    required this.title,
+    required this.createdAt,
+    required this.isAnonymousUser,
+    super.key,
+  });
 
   @override
-  displayReportImageState createState() => displayReportImageState();
+  // ignore: library_private_types_in_public_api
+  _DisplayReportImageState createState() => _DisplayReportImageState();
 }
 
-class displayReportImageState extends State<displayReportImage> {
-  final Color mint = Color.fromARGB(255, 162, 228, 184);
+class _DisplayReportImageState extends State<DisplayReportImage> {
+  final Color mint = const Color.fromARGB(255, 162, 228, 184);
   String? responseText;
   String? apiResults;
 
@@ -32,19 +38,17 @@ class displayReportImageState extends State<displayReportImage> {
     const prompt = 'You are an image-to-text converter. Please take this image and convert it to text, exactly as in the photo.';
 
     try {
-      final data = await supabase
+      final data = await Supabase.instance.client
         .from('files_converted')
         .select('image_text')
         .eq('image_url', widget.fileUrl);
 
       bool notExists = data.isEmpty;
       if (notExists) {
-        print(widget.fileUrl);
-        final Uint8List imageBytes = await supabase
-          .storage
-          .from('report_images')
+        final Uint8List imageBytes = await Supabase.instance.client.storage
+          .from(widget.isAnonymousUser ? 'for_guest_image_text' : 'report_images')
           .download(widget.fileUrl);
-        
+
         final convertedText = [
             Content.multi([
             TextPart(prompt),
@@ -57,12 +61,13 @@ class displayReportImageState extends State<displayReportImage> {
             responseText = response.text;
           });
 
-        await supabase.from('files_converted').insert({
-                                      'user_id': supabase.auth.currentSession!.user.id,
+        await Supabase.instance.client.from('files_converted').insert({
+                                      'user_id': Supabase.instance.client.auth.currentUser!.id,
                                       'image_url': widget.fileUrl,
                                       'image_text': responseText});
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Converted image into text'))
+              const SnackBar(content: Text('Converted image into text'))
         );
       } else {
         setState(() {
@@ -71,14 +76,14 @@ class displayReportImageState extends State<displayReportImage> {
       }
       
     } catch (error)  {
-      print(error);
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to either retrieve previously uploaded text, or failed to convert image into text: $error'))
       );
     }
   }
     
-  void geminiAnalyze() async {
+  Future<void> geminiAnalyze() async {
     if (responseText == null) {
       await geminiImageToText();
     }
@@ -87,68 +92,76 @@ class displayReportImageState extends State<displayReportImage> {
     final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
 
     try {
-      final content = [Content.text('Please translate and explain any medical terminology or terms into short explainations: $responseText')];
+      final content = [Content.text('Please translate and explain any medical terminology or terms into short explanations: $responseText')];
       final response = await model.generateContent(content);
       var generatedText = response.text ?? "No result generated";
 
-      // Inform the user of success
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Text successfully uploaded and analyzed')),
-      );
       // Store result in state
       setState(() {
         apiResults = generatedText;
       });
-      print(apiResults);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload text to gemini for analysis: $e')),
-      );
-    }
-  }
-  
-    @override
-    Widget build(BuildContext context) {
-      if (apiResults != null && apiResults!.isNotEmpty) {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
+
+      // Navigate to FeedbackPage
+      SchedulerBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => FeedbackPage(apiResults: apiResults!))
         );
       });
 
-      }
-      //else
-      return MaterialButton(
-          color: mint,
-          highlightColor: mint,
-          onPressed: () {
-              geminiAnalyze();
-            },
-          child: Row(
-          children: [Padding(
+      // Inform the user of success
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Text successfully uploaded and analyzed')),
+      );
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload text to gemini for analysis: $e')),
+      );
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return MaterialButton(
+        color: mint,
+        highlightColor: mint,
+        onPressed: () {
+            geminiAnalyze();
+          },
+        child: Row(
+        children: [
+          Padding(
             padding: const EdgeInsets.all(10.0),
             child: SizedBox(
               width: 100,
               height: 100,
-              child: 
-              Image.network(
+              child: Image.network(
                       widget.imageUrl,
                       fit: BoxFit.cover,
-                    )
-            )),
-            SizedBox(
-              width: 150,
-              height: 50,
-              child: Text(overflow: TextOverflow.fade,
-                          maxLines: 2,
-                          'image url link: ${widget.fileUrl.substring(supabase.auth.currentSession!.user.id.length)}')
-            )
-          ], 
-        )
-      );
-    }
+                    ),
+            ),
+          ),
+          SizedBox(
+            width: 150,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Created: ${widget.createdAt.toLocal()}',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ], 
+      ),
+    );
+  }
 }
-
-
-

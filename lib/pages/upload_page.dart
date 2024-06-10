@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:gemini/components/constants.dart';
+import 'package:gemini/pages/account_page.dart';
 import 'package:gemini/pages/feedback.dart';
+import 'package:gemini/pages/intro_screen.dart';
 import 'package:gemini/pages/view_uploads.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/pages/disclaimer_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/widgets.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:gemini/pages/login.dart';
-import 'dart:io';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:gemini/pages/login.dart';
+import 'dart:typed_data';
 
 class ReportImage extends StatefulWidget {
   const ReportImage({super.key});
@@ -25,132 +21,288 @@ class ReportImage extends StatefulWidget {
 
 class _ReportImageState extends State<ReportImage> {
   final TextEditingController _textController = TextEditingController();
-  final Color mint = Color.fromARGB(255, 162, 228, 184);
+  final FocusNode _focusNode = FocusNode();
+  final Color mint = const Color.fromARGB(255, 162, 228, 184);
   String? apiResults; // Variable to store API results
-  int UploadedFileCount = 0;
+  int uploadedFileCount = 0;
+  String? avatarUrl; // Variable to store avatar URL
+  bool isAnonymousUser = false;
 
-  void uploadText(BuildContext context) async {
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      isAnonymousUser = user.isAnonymous;
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .single();
+      setState(() {
+        avatarUrl = response['avatar_url'];
+      });
+    }
+  }
+
+  Future<void> _showSignOutReminderDialog() async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Guest Mode'),
+          content: const Text(
+            'You are currently browsing as a guest. Would you like to sign out or keep browsing?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Keep Browsing'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Sign Out'),
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const IntroScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showTitleDialog(Function(String) onTitleEntered) async {
+    final TextEditingController _titleController = TextEditingController();
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must enter a title
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Title'),
+          content: TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(hintText: 'Title'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Submit'),
+              onPressed: () {
+                final title = _titleController.text.trim();
+                if (title.isNotEmpty) {
+                  onTitleEntered(title);
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Title cannot be empty')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> uploadText(BuildContext context) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    final userId = user?.id;
+
     if (_textController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Please enter the text and then upload!")));
+          const SnackBar(content: Text('Please enter some text')));
       return;
     }
 
-    final apiKey = dotenv.env['APIKEY']!;
-    final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey!);
+    await _showTitleDialog((title) async {
+      final textContent = _textController.text;
+      final textBytes = textContent.codeUnits;
+      final textPath = '$userId/report_${DateTime.now().toIso8601String()}.txt';
+      final bucketName = isAnonymousUser ? 'for_guest_image_text' : 'report_images';
 
-    try {
-      final content = [
-        Content.text(_textController.text +
-            "Simplify the patient report so that a patient with no medical background can understand it, and then provide 5 potential questions that the patient wants to ask the doctor.")
-      ];
-      final response = await model.generateContent(content);
-      var generatedText = response.text ?? "No result generated";
+      try {
+        await Supabase.instance.client.storage.from(bucketName).uploadBinary(
+              textPath,
+              Uint8List.fromList(textBytes),
+              fileOptions: FileOptions(
+                upsert: true,
+                contentType: 'text/plain',
+              ),
+            );
 
-      // Store result in state
-      setState(() {
-        apiResults = generatedText;
-      });
-      print(apiResults);
+        await Supabase.instance.client
+            .from('report_image_text_metadata')
+            .insert({
+          'user_id': userId,
+          'path': textPath,
+          'type': 'text/plain',
+          'title': title,
+        });
 
-      // Inform the user of success
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Text successfully uploaded and analyzed')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload text: $e')),
-      );
-    }
+        setState(() {
+          uploadedFileCount += 1;
+        });
+
+        final apiKey = dotenv.env['APIKEY']!;
+        final model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey);
+
+        final content = [
+          Content.text(textContent +
+              " Simplify the patient report so that a patient with no medical background can understand it, and then provide 5 potential questions that the patient wants to ask the doctor.")
+        ];
+        final response = await model.generateContent(content);
+        var generatedText = response.text ?? "No result generated";
+
+        setState(() {
+          apiResults = generatedText;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Text successfully uploaded and analyzed')),
+        );
+
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => FeedbackPage(apiResults: generatedText)));
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to upload text: $e')));
+      }
+    });
   }
 
   Future<void> uploadImages(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
     final List<XFile>? images = await picker.pickMultiImage();
-    final _userId = supabase.auth.currentSession == null ? null : supabase.auth.currentSession!.user.id;
+    final user = Supabase.instance.client.auth.currentUser;
+    final userId = user?.id;
 
     if (images == null || images.isEmpty) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('No images selected')));
+          .showSnackBar(const SnackBar(content: Text('No images selected')));
       return;
     }
+
     for (var image in images) {
-      final imageBytes = await image.readAsBytes();
-      final mimeType = lookupMimeType(image.path, headerBytes: imageBytes);
-      final contentType = mimeType ?? 'application/octet-stream';
-      final imageExtension = mimeType != null ? mimeType.split('/').last : 'bin';
+      await _showTitleDialog((title) async {
+        final imageBytes = await image.readAsBytes();
+        final mimeType = lookupMimeType(image.path, headerBytes: imageBytes);
+        final contentType = mimeType ?? 'application/octet-stream';
+        final imageExtension =
+            mimeType != null ? mimeType.split('/').last : 'bin';
+        final imagePath =
+            '$userId/report_${DateTime.now().toIso8601String()}.$imageExtension';
+        final bucketName =
+            isAnonymousUser ? 'for_guest_image_text' : 'report_images';
 
-      final imagePath = _userId != null ?
-            '$_userId/report_${DateTime.now().toIso8601String()}.$imageExtension'
-          : 'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
+        try {
+          await Supabase.instance.client.storage.from(bucketName).uploadBinary(
+                imagePath,
+                imageBytes,
+                fileOptions: FileOptions(
+                  upsert: true,
+                  contentType: contentType,
+                ),
+              );
 
-      setState(() {
-        UploadedFileCount = images.length;
+          await Supabase.instance.client
+              .from('report_image_text_metadata')
+              .insert({
+            'user_id': userId,
+            'path': imagePath,
+            'type': contentType,
+            'title': title,
+          });
+
+          setState(() {
+            uploadedFileCount += 1;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image successfully uploaded')));
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to upload image: $e')));
+        }
       });
-
-      try {
-        await supabase.storage.from('report_images').uploadBinary(
-              imagePath,
-              imageBytes,
-              fileOptions: FileOptions(
-                upsert: true,
-                contentType: contentType
-              ),
-            );
-
-        final response = await supabase.from('report_images_metadata').insert({
-          'path': imagePath,
-          'type': imageExtension,
-        }).select();
-        print('Response: $response');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Image successfully uploaded')));
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload image: $e')));
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: mint,
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset('lib/images/Medicode.png', height: 50),
             const SizedBox(width: 20),
-            //Text('Medicode', style: TextStyle(color: Colors.black)),
           ],
-          mainAxisAlignment: MainAxisAlignment
-              .start, // Aligns title Row to the start of AppBar
         ),
         actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.white, // Button background color
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18), // Rounded edges
-              ),
-            ),
-            child: Text(
-              'Log In',
-              style: TextStyle(
-                fontWeight: FontWeight.bold, // Make the text bold
-              ),
-            ),
-          ),
-          const SizedBox(width: 10), // Spacing after button
+          user == null
+              ? TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: const Text(
+                    'Log In',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    if (isAnonymousUser) {
+                      _showSignOutReminderDialog();
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AccountPage()),
+                      );
+                    }
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      avatarUrl ?? 'https://via.placeholder.com/150',
+                    ),
+                  ),
+                ),
+          const SizedBox(width: 10),
         ],
         elevation: 0,
       ),
@@ -164,48 +316,77 @@ class _ReportImageState extends State<ReportImage> {
                 child: Image.asset('lib/images/heart.png'),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal:
-                        20.0), // Reduced horizontal padding for wider TextField
-                child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Text(
+                  'Upload your report as an image or text for processing and analysis.',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: SizedBox(
                   height: 100,
                   child: TextField(
+                    focusNode: _focusNode,
                     controller: _textController,
-                    decoration: InputDecoration(
-                      border:
-                          OutlineInputBorder(), // Rectangle appearance with a border
-                      labelText:
-                          'Enter text to upload', // Label inside the text field
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Enter text to upload',
                       alignLabelWithHint: true,
                       contentPadding: EdgeInsets.symmetric(
-                          vertical: 20.0, horizontal: 20.0), // Padding inside
+                          vertical: 20.0, horizontal: 20.0),
                     ),
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                     keyboardType: TextInputType.multiline,
-                    minLines: 10,
-                    maxLines: null, // Allows unlimited lines
+                    maxLines: null,
+                    onTap: () {
+                      _focusNode.requestFocus();
+                    },
                   ),
                 ),
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => uploadText(context),
-                style: buttonStyle(),
-                child: const Text('Upload Text',
-                    style: TextStyle(color: Colors.black, fontSize: 16)),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => uploadText(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: mint,
+                  ),
+                  child: const Text(
+                    'Upload and Analyze Text',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                ),
               ),
-              SizedBox(height: 20),
-              DividerWithText(dividerText: "OR"),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => uploadImages(context),
-                style: buttonStyle(),
-                child: const Text('Upload Screenshots',
-                    style: TextStyle(color: Colors.black, fontSize: 16)),
+              const SizedBox(height: 20),
+              Divider(
+                  thickness: 2,
+                  color: Colors.grey[300]),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => uploadImages(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: mint,
+                  ),
+                  child: const Text(
+                    'Upload Screenshots',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                ),
               ),
-              SizedBox(height: 20),
-              Text('Number of Uploaded Images: $UploadedFileCount'),
-              SizedBox(height: 120),
+              const SizedBox(height: 20),
+              Text('Number of Uploaded Image Reports: $uploadedFileCount'),
+              const SizedBox(height: 70),
               navigationButtons(context),
               const SizedBox(height: 20),
             ],
@@ -215,176 +396,51 @@ class _ReportImageState extends State<ReportImage> {
     );
   }
 
-  ButtonStyle buttonStyle() {
-    return ElevatedButton.styleFrom(
-      backgroundColor: mint,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-    );
-  }
-
   Widget navigationButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        ElevatedButton(
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (_) => const DisclaimerPage()));
-            }
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DisclaimerPage()));
           },
-          style: buttonStyle(),
-          child: const Text("Back",
-              style: TextStyle(color: Colors.black, fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: mint,
+            ),
+            child: const Text(
+              'Back',
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ),
         ),
-        ElevatedButton(
-          onPressed: () {
-            if (apiResults != null && apiResults!.isNotEmpty) {
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          FeedbackPage(apiResults: apiResults!)));
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('No results')),
-              );
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ViewUploadsPage()));
-            }
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ViewUploadsPage()));
           },
-          style: buttonStyle(),
-          child: const Text("Next",
-              style: TextStyle(color: Colors.black, fontSize: 16)),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: mint,
+            ),
+            child: const Text(
+              'Saved Image Reports',
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ),
         ),
       ],
     );
   }
 }
-
-class DividerWithText extends StatelessWidget {
-  final String dividerText;
-  const DividerWithText({Key? key, required this.dividerText})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(dividerText),
-        ),
-        Expanded(child: Divider())
-      ],
-    );
-  }
-}
-
-class GenerativeAIManager {
-  GenerativeModel? model;
-  final apiKey = dotenv.env['APIKEY']!;
-
-  Future<void> initializeModel() async {
-    if (apiKey == null) {
-      print('No \$API_KEY environment variable found.');
-      exit(1);
-    } else {
-      model = GenerativeModel(model: 'MODEL_NAME', apiKey: apiKey);
-    }
-  }
-}
-
-Future<void> simplifyMedicalText(String inputText) async {
-  final apiKey = dotenv.env['APIKEY']!;
-  var url = Uri.parse(
-      'https://api.geminiapi.com/v1/simplify'); // Replace with the actual URL
-  var response = await http.post(
-    url,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': apiKey // API key
-    },
-    body: jsonEncode({
-      'text': inputText,
-    }),
-  );
-
-  if (response.statusCode == 200) {
-    var data = jsonDecode(response.body);
-    return data[
-        'simplifiedText']; // Assuming the response contains a field `simplifiedText`
-  } else {
-    throw Exception('Failed to simplify text: ${response.body}');
-  }
-}
-
-
-
-// class ReportImage extends StatelessWidget {
-//   const ReportImage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Upload Images"),
-//       ),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             ElevatedButton(
-//               onPressed: () async {
-//                 final ImagePicker picker = ImagePicker();
-//                 final List<XFile>? images = await picker.pickMultiImage();
-//                 if (images == null || images.isEmpty) {
-//                   ScaffoldMessenger.of(context).showSnackBar(
-//                     SnackBar(content: Text('No images selected')),
-//                   );
-//                   return;
-//                 }
-//                 for (var image in images) {
-//                   final imageExtension =
-//                       image.path.split('.').last.toLowerCase();
-//                   final imageBytes = await image.readAsBytes();
-//                   //final userId = supabase.auth.currentUser!.id;
-//                   final imagePath =
-//                       'reports/report_${DateTime.now().toIso8601String()}.$imageExtension';
-//                   try {
-//                     await supabase.storage.from('report_images').uploadBinary(
-//                           imagePath,
-//                           imageBytes,
-//                           fileOptions: FileOptions(
-//                             upsert: true,
-//                             contentType: 'image/$imageExtension',
-//                           ),
-//                         );
-//                     String imageUrl = supabase.storage
-//                         .from('report_images')
-//                         .getPublicUrl(imagePath);
-//                     ScaffoldMessenger.of(context).showSnackBar(
-//                       SnackBar(content: Text('Image successfully uploaded')),
-//                     );
-//                   } catch (e) {
-//                     ScaffoldMessenger.of(context).showSnackBar(
-//                       SnackBar(content: Text('Failed to upload image: $e')),
-//                     );
-//                   }
-//                 }
-//               },
-//               child: const Text('Upload Images'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
