@@ -77,9 +77,13 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
 
   @override
   @override
-  Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
-    return Scaffold(
+@override
+Widget build(BuildContext context) {
+  final user = Supabase.instance.client.auth.currentUser;
+
+  return WillPopScope(
+    onWillPop: () async => false,
+    child: Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: mint,
@@ -96,8 +100,7 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
                     );
                   },
                   style: TextButton.styleFrom(
@@ -121,8 +124,7 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                     } else {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const AccountPage()),
+                        MaterialPageRoute(builder: (context) => const AccountPage()),
                       );
                     }
                   },
@@ -185,12 +187,10 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              const ReportImage())); // Use push to add to stack
+                          builder: (context) => const ReportImage())); // Use push to add to stack
                 },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     color: mint,
@@ -206,8 +206,9 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildBulletPoint(String text) {
     return Padding(
