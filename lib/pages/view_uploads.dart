@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gemini/pages/upload_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/components/display_report_image.dart';
 import 'package:gemini/pages/intro_screen.dart';
@@ -146,7 +145,6 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
         actions: <Widget>[
           GestureDetector(
             onTap: () {
-              final user = Supabase.instance.client.auth.currentUser;
               if (isAnonymousUser) {
                 _showSignOutReminderDialog();
               } else {
