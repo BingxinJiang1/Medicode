@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gemini/pages/upload_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemini/components/display_report_image.dart';
 import 'package:gemini/pages/intro_screen.dart';
@@ -146,7 +145,6 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
         actions: <Widget>[
           GestureDetector(
             onTap: () {
-              final user = Supabase.instance.client.auth.currentUser;
               if (isAnonymousUser) {
                 _showSignOutReminderDialog();
               } else {
@@ -217,42 +215,8 @@ class _ViewUploadsPageState extends State<ViewUploadsPage> {
                       );
                     }),
                 const SizedBox(height: 50),
-                navigationButtons(context),
               ],
             ),
-    );
-  }
-
-  ButtonStyle buttonStyle() {
-    return ElevatedButton.styleFrom(
-      backgroundColor: mint,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-    );
-  }
-
-  Widget navigationButtons(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                } else {
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (_) => const ReportImage()));
-                }
-              },
-              style: buttonStyle(),
-              child: const Text("Back",
-                  style: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
