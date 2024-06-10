@@ -42,40 +42,40 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
   }
 
   Future<void> _showSignOutReminderDialog() async {
-  showDialog<void>(
-    context: context,
-    barrierDismissible: true,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Guest Mode'),
-        content: const Text(
-          'You are currently browsing as a guest. Would you like to sign out or keep browsing?',
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Keep Browsing'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Guest Mode'),
+          content: const Text(
+            'You are currently browsing as a guest. Would you like to sign out or keep browsing?',
           ),
-          TextButton(
-            child: const Text('Sign Out'),
-            onPressed: () async {
-              await Supabase.instance.client.auth.signOut();
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const IntroScreen()),
-                (Route<dynamic> route) => false,
-              );
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Keep Browsing'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Sign Out'),
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const IntroScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-
+  @override
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
@@ -96,7 +96,8 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
                     );
                   },
                   style: TextButton.styleFrom(
@@ -120,7 +121,8 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                     } else {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const AccountPage()),
+                        MaterialPageRoute(
+                            builder: (context) => const AccountPage()),
                       );
                     }
                   },
@@ -178,50 +180,26 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (_) => const IntroScreen()));
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: mint,
-                      ),
-                      child: const Text(
-                        'Back',
-                        style: TextStyle(color: Colors.black, fontSize: 16),
-                      ),
-                    ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              const ReportImage())); // Use push to add to stack
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: mint,
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ReportImage()));
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: mint,
-                      ),
-                      child: const Text(
-                        'Next',
-                        style: TextStyle(color: Colors.black, fontSize: 16),
-                      ),
-                    ),
+                  child: const Text(
+                    'Next',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
-                ],
+                ),
               ),
               const SizedBox(height: 20),
             ],
