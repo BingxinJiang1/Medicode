@@ -180,7 +180,7 @@ class _ReportImageState extends State<ReportImage> {
               content: Text('Text successfully uploaded and analyzed')),
         );
 
-        Navigator.pushReplacement(
+        Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => FeedbackPage(apiResults: generatedText)));
@@ -402,7 +402,7 @@ class _ReportImageState extends State<ReportImage> {
       children: [
         GestureDetector(
           onTap: () {
-            Navigator.pushReplacement(
+            Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const DisclaimerPage()));
@@ -422,7 +422,7 @@ class _ReportImageState extends State<ReportImage> {
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushReplacement(
+            Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const ViewUploadsPage()));
