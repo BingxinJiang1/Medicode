@@ -4,7 +4,6 @@ import 'package:gemini/pages/account_page.dart';
 import 'package:gemini/pages/feedback.dart';
 import 'package:gemini/pages/intro_screen.dart';
 import 'package:gemini/pages/view_uploads.dart';
-import 'package:gemini/pages/disclaimer_screen.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
@@ -136,7 +135,8 @@ class _ReportImageState extends State<ReportImage> {
       final textContent = _textController.text;
       final textBytes = textContent.codeUnits;
       final textPath = '$userId/report_${DateTime.now().toIso8601String()}.txt';
-      final bucketName = isAnonymousUser ? 'for_guest_image_text' : 'report_images';
+      final bucketName =
+          isAnonymousUser ? 'for_guest_image_text' : 'report_images';
 
       try {
         await Supabase.instance.client.storage.from(bucketName).uploadBinary(
@@ -268,7 +268,8 @@ class _ReportImageState extends State<ReportImage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
                     );
                   },
                   style: TextButton.styleFrom(
@@ -292,7 +293,8 @@ class _ReportImageState extends State<ReportImage> {
                     } else {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const AccountPage()),
+                        MaterialPageRoute(
+                            builder: (context) => const AccountPage()),
                       );
                     }
                   },
@@ -352,8 +354,8 @@ class _ReportImageState extends State<ReportImage> {
               GestureDetector(
                 onTap: () => uploadText(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     color: mint,
@@ -365,15 +367,13 @@ class _ReportImageState extends State<ReportImage> {
                 ),
               ),
               const SizedBox(height: 20),
-              Divider(
-                  thickness: 2,
-                  color: Colors.grey[300]),
+              Divider(thickness: 2, color: Colors.grey[300]),
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () => uploadImages(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     color: mint,
@@ -405,31 +405,10 @@ class _ReportImageState extends State<ReportImage> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const DisclaimerPage()));
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: mint,
-            ),
-            child: const Text(
-              'Back',
-              style: TextStyle(color: Colors.black, fontSize: 16),
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
                     builder: (context) => const ViewUploadsPage()));
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: mint,
